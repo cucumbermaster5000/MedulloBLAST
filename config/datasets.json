@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "maintainer": "Dave Ng <davengis@gmail.com>",
+  "publication_status": "Cerebellum URLs reserved locally; assets not published",
+  "datasets": {
+    "cerebellum": {
+      "version": "2026-09-25-v1",
+      "label": "Human and mouse developing cerebellum",
+      "attribution": "Sepp, Leiss et al. Nature (2023); Kaessmann Lab / Pfister Lab; CC BY 4.0; exonic indexing and Ensembl mapping adaptations.",
+      "source": "https://doi.org/10.1038/s41586-023-06884-x",
+      "files": [
+        {
+          "name": "gene-map.rds",
+          "url": "https://github.com/cucumbermaster5000/MedulloBLAST/releases/download/cerebellum-2026-09-25-v1/gene-map.rds",
+          "bytes": 1079347,
+          "sha256": "65559a3f5fb97f32854d8e3e2d499ae57201e14587a6291f5480cd6987532ed2"
+        },
+        {
+          "name": "human-counts.bin",
+          "url": "https://github.com/cucumbermaster5000/MedulloBLAST/releases/download/cerebellum-2026-09-25-v1/human-counts.bin",
+          "bytes": 1135035160,
+          "sha256": "a89309a19367232a34da3d2b80e1e8f2f6081e8a0f66341b5289a0931b64757a"
+        },
+        {
+          "name": "human-index.rds",
+          "url": "https://github.com/cucumbermaster5000/MedulloBLAST/releases/download/cerebellum-2026-09-25-v1/human-index.rds",
+          "bytes": 6283649,
+          "sha256": "b279d138b23f6acd28b67757595df1708c1aa863d7db96c8ea252aa9f3118673"
+        },
+        {
+          "name": "mouse-counts.bin",
+          "url": "https://github.com/cucumbermaster5000/MedulloBLAST/releases/download/cerebellum-2026-09-25-v1/mouse-counts.bin",
+          "bytes": 441959432,
+          "sha256": "9c11106ee81c977d582e6b1056374858b5e24d94a9afa90c0cb54881c6dd243b"
+        },
+        {
+          "name": "mouse-index.rds",
+          "url": "https://github.com/cucumbermaster5000/MedulloBLAST/releases/download/cerebellum-2026-09-25-v1/mouse-index.rds",
+          "bytes": 4236776,
+          "sha256": "31e79ebc2e9ce6bcf1822418892c92b1f066c98f5f65ec18ac4c298dfa7c8f1c"
+        },
+        {
+          "name": "manifest.rds",
+          "url": "https://github.com/cucumbermaster5000/MedulloBLAST/releases/download/cerebellum-2026-09-25-v1/manifest.rds",
+          "bytes": 2312,
+          "sha256": "7e4a922daed523cf2b75f68ce54c0b5bb7df22f83f004db958d6442b69d7cbaa"
+        },
+        {
+          "name": "manifest.json",
+          "url": "https://github.com/cucumbermaster5000/MedulloBLAST/releases/download/cerebellum-2026-09-25-v1/manifest.json",
+          "bytes": 6712,
+          "sha256": "6b85a2337c69942636078f899669b4476056fa13a081a1b56308d410fd2e1d52"
+        }
+      ]
+    },
+    "depmap_archive": {
+      "version": "24Q4-v1",
+      "label": "Legacy DepMap archive (current Shiny tab retains Breadbox)",
+      "attribution": "DepMap 24Q4 Public v1; CC BY 4.0; full original provenance in manifest.json",
+      "source": "https://doi.org/10.25452/figshare.plus.27993248.v1",
+      "files": [
+        {
+          "name": "Model.csv",
+          "url": "https://ndownloader.figshare.com/files/51065297",
+          "bytes": 645696,
+          "sha256": "b7a0c1385e6cef30132b56aff61f1261d11e3f490490b355c430d32ee0dbdcfa"
+        },
+        {
+          "name": "CRISPRGeneEffect.csv",
+          "url": "https://ndownloader.figshare.com/files/51064667",
+          "bytes": 428678699,
+          "sha256": "3d8f3ec6dbf2db7ff834b79b508622ec0b226f3518003fe96ecf5a4fcf167e3b"
+        },
+        {
+          "name": "OmicsExpressionProteinCodingGenesTPMLogp1.csv",
+          "url": "https://ndownloader.figshare.com/files/51065489",
+          "bytes": 506628654,
+          "sha256": "2a71dc94110efcc0221eae821bb93a9f03b54bea16f005818911a09d33383d56"
+        },
+        {
+          "name": "README.txt",
+          "url": "https://ndownloader.figshare.com/files/51065795",
+          "bytes": 43103,
+          "sha256": "f744a5cf5c112e01276e772679157aac8e85cdc4a8f6d3b86d808e3bfd332891"
+        },
+        {
+          "name": "manifest.json",
+          "bundled": "resources/provenance/depmap-24Q4-v1.json",
+          "bytes": 26542,
+          "sha256": "a1e5865cdd4d34e59d2f95614cc485efc6b1b5f5e43df2a842293b72b4bfa17f"
+        }
+      ]
+    }
+  }
+}

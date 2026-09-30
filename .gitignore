@@ -1,0 +1,14 @@
+.R-library/
+.cache/
+data/
+outputs/
+.Rhistory
+.RData
+.Renviron
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.log
+rsconnect/

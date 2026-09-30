@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>MedulloBLAST cerebellum</title>
+  <path d="M28 45l-3 13h14l-4-13" fill="#D98F9D" stroke="#80535C" stroke-width="2"/>
+  <path d="M32 14C21 4 5 14 5 29c-4 13 8 23 21 20l6-3 6 3c13 3 25-7 21-20C59 14 43 4 32 14Z" fill="#D98F9D" stroke="#80535C" stroke-width="3"/>
+  <g fill="none" stroke="#80535C" stroke-width="2.5" stroke-linecap="round">
+    <path d="M11 24q8-11 18-6M9 31q9-12 20-8M11 38q8-11 18-9M16 44q5-9 13-9M53 24q-8-11-18-6M55 31q-9-12-20-8M53 38q-8-11-18-9M48 44q-5-9-13-9"/>
+  </g>
+  <path d="M32 17v26" stroke="#80535C" stroke-width="3" stroke-linecap="round"/>
+</svg>

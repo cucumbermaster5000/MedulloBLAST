@@ -1,0 +1,160 @@
+---
+title: "Integrated Gene Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: false
+    self_contained: true
+    theme: flatly
+    highlight: tango
+params:
+  snapshot_path: null
+  root: null
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE, results="asis", fig.align="center", out.width="100%")
+snapshot <- readRDS(params$snapshot_path)
+source(file.path(params$root, "R", "load_core.R"), local=TRUE)
+core <- load_r2_core(params$root)
+x <- snapshot$main; gene <- snapshot$gene
+tbl <- function(d, caption=NULL, n=Inf) {
+  if (is.null(d) || !is.data.frame(d) || !nrow(d)) return(cat("*Unavailable in the current session snapshot.*\n\n"))
+  print(knitr::kable(utils::head(d,n), caption=caption, digits=4, row.names=FALSE))
+}
+selected_fig <- function(stem, caption=NULL) {
+  p <- file.path(dirname(params$snapshot_path), "..", "figures", paste0(stem,".png"))
+  if (!file.exists(p))return(invisible(NULL))
+  cat('<img alt="',esc(stem),'" style="width:100%;height:auto" src="',base64enc::dataURI(file=p,mime='image/png'),'" />\n\n',sep='')
+  if (!is.null(caption)) cat("\n",caption,"\n\n")
+}
+fig <- function(...) invisible(NULL) # Figures are assembled once, in the selected order below.
+esc <- function(z) as.character(htmltools::htmlEscape(as.character(z)))
+interpretation <- if(is.null(snapshot$interpretation))core$report_interpretation(snapshot)else snapshot$interpretation
+refs <- function(ids) paste(vapply(ids,function(id){z<-interpretation$evidence$observations[[id]];paste0('[Evidence: ',z$source,' / ',z$tab,'](#evidence-',id,')')},character(1)),collapse='; ')
+fmt <- function(v) if(is.null(v)||!length(v)||is.na(v[1])) "Unavailable" else format(v[1],digits=4,scientific=TRUE)
+status <- function(v) if(is.null(v)) "Unavailable" else v
+```
+
+<style>
+body { color:#22324a; font-size:15px; }
+h1.title { display:none; }
+h1,h2,h3 { color:#214f87; }
+.hero { padding:24px; border-radius:12px; background:linear-gradient(135deg,#e9f1fb,#f6f8fc); margin-bottom:24px; }
+.hero h1 { margin-top:0; font-size:38px; }
+.callout { border-left:5px solid #d18a40; background:#fff8ed; padding:12px 16px; margin:16px 0; }
+.source { color:#607089; font-size:0.92em; }
+table { font-size:0.88em; }
+@media print { #TOC, .tocify-wrapper { display:none; } body { max-width:none; } a[href]:after { content:""; } .report-figure { break-inside:avoid; } h1,h2,h3 { break-after:avoid; } }
+</style>
+
+<div class="hero">
+<h1>`r gene` Integrated Gene Report</h1>
+<p><strong>Generated:</strong> `r snapshot$generated_at` &nbsp; | &nbsp; <strong>Application:</strong> Medulloblastoma Gene Explorer `r snapshot$app_version`</p>
+<p>Biological findings from the selected datasets and analysis settings. Complete results accompany this report in the data ZIP.</p>
+</div>
+
+# Gene at a Glance
+
+```{r glance, results='asis'}
+h <- snapshot$hpa
+id <- if(!is.null(h)) h$identity else if(!is.null(snapshot$publications)) snapshot$publications$identity else list()
+cat("**Canonical symbol:**",core$report_value(id$canonical_symbol,gene),"  \n")
+cat("**Official name:**",core$report_value(id$official_name),"  \n")
+cat("**Original query:**",core$report_value(id$original_query,gene),"  \n")
+cat("**Aliases:**",if(length(id$aliases)) paste(id$aliases,collapse=", ") else "Unavailable","  \n")
+cat("**Ensembl:**",core$report_value(id$ensembl_id)," | **Entrez:**",core$report_value(id$gene_id)," | **UniProt:**",if(length(id$uniprot_id))paste(id$uniprot_id,collapse=", ")else"Unavailable","  \n")
+if(!is.null(h)) {
+  val <- function(n) core$hpa_value(h$raw$json[[n]])
+  cat("**Molecular function:**",core$report_value(val("Molecular function")),"  \n")
+  cat("**Biological process:**",core$report_value(val("Biological process")),"  \n")
+  cat("**Protein class:**",core$report_value(val("Protein class")),"  \n")
+  cat("**Subcellular location:**",core$report_value(val("Subcellular location")),"  \n")
+}
+if(!is.null(snapshot$biology)) cat("**Transcription-factor classification:**",snapshot$biology$tf$status,";",core$report_value(snapshot$biology$tf$family,"family/domain unavailable"),"  \n")
+```
+
+# Biological Findings
+
+```{r biological-findings}
+for(z in interpretation$evidence$observations) {
+  cat('<div id="evidence-',z$id,'"></div>\n\n',sep='')
+  cat('**',esc(z$tab),'**: ',esc(z$text),' [',esc(z$source),'](#source-',z$source,').\n\n',sep='')
+}
+if(!length(interpretation$evidence$observations))cat('No biological findings were available for this report.\n\n')
+if(!is.null(x$subtypes$overall))cat('**Molecular subtypes:** overall expression comparison p = ',
+    fmt(x$subtypes$overall$p_value),'; n = ',x$subtypes$overall$n,
+    '. Pairwise comparisons use BH correction and are included in the data ZIP; the overall test does not establish subtype specificity.\n\n',sep='')
+# Keep effect estimates and confidence intervals for the survival association.
+a<-x$clinical$survival$all
+if(!is.null(a)&&identical(a$status,'complete')) {
+  v<-a$statistics
+  cat('**Overall survival effect:** hazard ratio (High/Low) ',fmt(v$hazard_ratio_high_vs_low),
+      ' (95% CI ',fmt(v$ci_lower),' to ',fmt(v$ci_upper),'). Cutoff: ',
+      esc(v$cutoff_method),' = ',fmt(v$cutoff),'. High means above the cutoff; ties belong to Low.\n\n',sep='')
+}
+```
+
+# Hypotheses to Explore
+
+These patterns suggest follow-up experiments; they do not establish a mechanism.
+
+```{r integrated-patterns}
+if(!is.null(interpretation$fallback))cat(esc(interpretation$fallback),'\n\n')
+for(p in interpretation$patterns)cat('**',esc(p$title),'**: ',esc(p$text),' ',refs(p$evidence),'\n\n',sep='')
+```
+
+# Selected Publications
+
+```{r publications}
+p<-snapshot$publications
+if(is.null(p))cat('Publication results were unavailable.\n\n')else {
+  cat('Up to five papers in the selected ',esc(p$sort),' order; scope: ',esc(p$scope),
+      '. This is a reading list, not a systematic review or an assessment of evidence quality.\n\n',sep='')
+  if(!length(p$articles))cat('No publications were returned for this search.\n\n')
+  for(a in head(p$articles,5))cat('- [',esc(core$report_value(a$title,'Title unavailable')),'](',a$pubmed_url,') - ',
+      esc(core$report_value(a$journal)),', ',esc(core$report_value(a$publication_date)),
+      if(isTRUE(a$retracted))' **Retracted.**'else'', '\n',sep='')
+}
+```
+
+# Figures
+
+```{r selected-figures}
+if(!length(snapshot$figure_manifest))cat('No figures selected.\n\n')
+for(i in seq_along(snapshot$figure_manifest)) {
+  f<-snapshot$figure_manifest[[i]]
+  cat('<div class="report-figure">\n\n')
+  selected_fig(f$id,paste0('**Figure ',i,'. ',esc(f$caption),'** [Source: ',f$source,'](#source-',f$source,')'))
+  cat('\n</div>\n\n')
+}
+```
+
+# Data Sources
+
+```{r source-citations}
+for(z in interpretation$evidence$citations) {
+  cat('<div id="source-',z$id,'"></div>\n\n',sep='')
+  cat('**',z$id,': [',esc(z$label),'](',z$url,')**\n\n',sep='')
+  cat(esc(core$report_source_details(z)),'\n\n')
+}
+```
+
+# Limitations
+
+- All statistical results are exploratory and gene-wise; repeated gene searches are not corrected together.
+- R2 clinical analyses are univariable and do not adjust for age, batch, treatment, molecular covariates, or cohort-selection bias.
+- Expression platforms and scales differ across R2, Pfister, HPA, and DepMap and should not be compared numerically.
+- External annotations and publication records can change after their recorded retrieval dates.
+- Missing sections indicate that the corresponding session object was unavailable; report generation does not silently retrieve replacements.
+
+# Analysis Settings and Missing Evidence
+
+```{r settings}
+cat('**Survival split:** ',esc(core$report_value(snapshot$settings$survival_cutoff)),
+    ' | **TF target set:** ',esc(core$report_value(snapshot$settings$biology_target_set)),'.\n\n',sep='')
+for(z in interpretation$evidence$missing)cat('- ',esc(z),'\n',sep='')
+```
+
+Full statistical tables, target evidence, publication records and reproducibility metadata are available in the companion ZIP. Figures reflect the selections made in the app. Missing evidence is not a negative biological result.

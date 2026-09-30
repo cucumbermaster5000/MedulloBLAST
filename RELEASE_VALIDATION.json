@@ -1,0 +1,17 @@
+{
+  "status": "local candidate; no Linux or R 4.6.0 execution yet",
+  "target_R": "4.6.0",
+  "preparation_R": "4.6.1",
+  "preparation_OS": "Windows",
+  "maintainer": "Dave Ng <davengis@gmail.com>",
+  "linux_validation": "Deferred to first Cloud build at user request; not passed",
+  "reference_assets": "Prepared with checksums; proposed release URLs not yet published",
+  "publication": "Awaiting review of this exact source and data package",
+  "profile": {
+    "MB_INTEGRATED_REPORT": false,
+    "MB_REPORT_PDF": false,
+    "MB_MAX_WORKERS": 1,
+    "cloud_processes": 1,
+    "cloud_connections": 2
+  }
+}

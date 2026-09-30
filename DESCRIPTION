@@ -1,0 +1,14 @@
+Package: mbgeneexplorer
+Title: MedulloBLAST
+Version: 0.4.3
+Date: 2026-09-27
+Authors@R: person("Dave", "Ng", role = c("aut", "cre"), email =
+        "davengis@gmail.com")
+Description: Production dependencies for the MedulloBLAST Shiny
+        application.
+License: file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.6.0)
+Imports: base64enc, bslib, callr, curl, data.table, digest, filelock,
+        ggplot2, ggrepel, htmltools, jsonlite, knitr, later, rmarkdown,
+        rvest, shiny, survival, xml2, plotly

@@ -1,0 +1,34 @@
+:root { --dashboard-blue:#285DA8; --dashboard-border:#DDE4ED; }
+html {font-size:14px} body {background:#F3F6FA;color:#29384B;line-height:1.5}
+h1 {font-size:22px} h2 {font-size:22px} h3 {font-size:19px} h4 {font-size:16px}
+.bslib-page-title {font-size:20px;font-weight:650}
+.dashboard-toolbar {display:flex;align-items:center;justify-content:space-between;gap:20px;background:white;padding:12px 18px;border:1px solid var(--dashboard-border);border-radius:10px;margin-bottom:14px}
+.toolbar-query {display:flex;align-items:end;gap:12px}.toolbar-query .shiny-input-container{margin:0;width:240px}.toolbar-query .btn{margin-bottom:0;height:38px}
+.toolbar-context{display:flex;flex-direction:column;font-size:12px;color:#617186;line-height:1.5}.toolbar-context small{font-size:10px}
+#gene::placeholder{font-style:italic;color:#8A96A5;opacity:1}
+.analysis-rendering{display:none}.analysis-rendering-busy .analysis-ready{display:none}.analysis-rendering-busy .analysis-rendering{display:block}
+.dashboard-nav > .row > :first-child {flex:0 0 220px;width:220px;background:white;border:1px solid var(--dashboard-border);border-radius:10px;align-self:start;position:sticky;top:12px;padding:14px 8px;overflow-wrap:anywhere}
+.dashboard-nav > .row > :last-child {flex:1;min-width:0}
+.dashboard-nav > .row > :first-child::before {content:'MedulloBLAST';display:block;font-size:18px;font-weight:650;padding:8px 0 20px 35px;line-height:1.35;background:url('cerebellum.svg') no-repeat 2px 7px;background-size:28px}
+.dashboard-nav .nav-pills .nav-link {border-radius:6px;padding:10px 12px;color:#4A5E78;font-size:13px}
+.dashboard-nav .nav-pills .nav-link.active {background:#E7EFFC;color:#204F95;font-weight:650}
+.dashboard-nav > .row > .tab-content {min-width:0}
+.dashboard-nav > .row > :last-child > .tab-content > .tab-pane {background:white;border:1px solid var(--dashboard-border);border-radius:10px;padding:18px}
+.card,.dashboard-card {border:1px solid var(--dashboard-border);border-radius:10px;box-shadow:0 2px 4px #22334D05;background:white}
+.card-header {background:white;font-size:14px;font-weight:600;border-bottom:1px solid #EDF0F5}
+.gene-glance {border-top:3px solid var(--dashboard-blue);margin-bottom:16px}.gene-glance .card-body{gap:8px;flex:none}.gene-glance h2,.gene-glance h4{margin:0}.gene-glance p{margin-bottom:6px}
+.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}.summary-card{padding:12px;border:1px solid var(--dashboard-border);border-radius:8px;background:#F9FBFE}.summary-card strong{font-size:12px;color:#617186}.summary-card .stat-value{font-size:19px;font-weight:600;margin:4px 0}.summary-card small{font-size:11px;color:#617186}
+.gene-facts {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 24px;font-size:13px}
+.gene-facts strong {font-size:12px;color:#617186}.gene-facts p{margin:2px 0 8px}
+.source-badges {display:flex;gap:8px}.source-badges a{font-size:11px;border:1px solid #DCE5F2;background:#F4F7FC;padding:2px 8px;border-radius:4px;text-decoration:none}
+.bslib-value-box {background:white!important;color:#29384B!important;min-height:100px}.bslib-value-box .value-box-value{font-size:24px!important}.bslib-value-box .value-box-title{font-size:12px!important;color:#617186}
+.table {font-size:12px}.table>:not(caption)>*>*{padding:6px 8px;white-space:nowrap;overflow-wrap:normal}
+[id^="hpa_table_"] td{white-space:normal;overflow-wrap:anywhere;min-width:100px}
+.alert {font-size:13px;border:0;border-left:3px solid #A8BCD9;border-radius:6px;padding:10px 12px}
+.btn {font-size:13px;border-radius:6px}.btn-primary{background:var(--dashboard-blue);border-color:var(--dashboard-blue)}
+.tab-content,.tab-pane,.card-body {min-width:0;overflow-wrap:anywhere}.nav-tabs {margin-bottom:14px}.nav-tabs .nav-link{font-size:12px;padding:8px}
+.shiny-plot-output img{display:block;max-width:100%}.tab-pane div[style="overflow-x:auto"]:has(.shiny-plot-output){overflow-x:hidden!important}
+.cerebellum-grid{display:grid;grid-template-columns:repeat(2,minmax(360px,1fr));gap:16px;margin-bottom:18px;overflow-x:auto}
+.cerebellum-grid .card{min-width:0}.cerebellum-grid .plotly{width:100%!important}
+@media(max-width:900px){.dashboard-toolbar{flex-wrap:wrap}.gene-facts{grid-template-columns:1fr}.dashboard-nav .nav-pills .nav-link{padding:8px;font-size:12px}}
+@media(max-width:767px){.dashboard-nav > .row > :first-child{position:static;margin-bottom:12px;flex:0 0 100%;width:100%}.dashboard-nav > .row > :last-child{flex:0 0 100%;width:100%}.dashboard-nav .nav-pills{display:grid;grid-template-columns:repeat(2,1fr)}.toolbar-query{flex-wrap:wrap}.dashboard-toolbar{padding:12px}.toolbar-query .shiny-input-container{width:200px}.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
