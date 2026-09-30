@@ -51,9 +51,27 @@ provisioning_set_state <- function(cfg,id,state,file=NULL,error=NULL) {
     list(state=state,file=file,error=error,updated_at=utc_now()))
 }
 provisioning_state <- function(cfg,id) cache_get(provisioning_state_config(cfg),paste0("reference-",id)) %||% list(state="queued")
+# Verified reference files remain on disk. On Cloud, release their reclaimable
+# Linux page cache after a full checksum scan instead of retaining gigabytes of
+# inactive pages beside Shiny workers. GNU dd reads/writes zero bytes here.
+# https://www.gnu.org/s/coreutils/manual/html_node/dd-invocation.html
+provisioning_release_file_cache <- function(path) {
+  if(Sys.info()[["sysname"]]!="Linux"||Sys.getenv("R_CONFIG_ACTIVE")!="connect_cloud"||
+     Sys.getenv("MB_RELEASE_REFERENCE_CACHE","true")!="true")return(invisible(FALSE))
+  commands<-Sys.which(c("sync","dd"))
+  if(!all(nzchar(commands)))return(invisible(FALSE))
+  tryCatch({
+    flushed<-processx::run(commands[["sync"]],c("-d","--",path),error_on_status=FALSE,timeout=10000)
+    if(flushed$status!=0L)return(invisible(FALSE))
+    released<-processx::run(commands[["dd"]],c(paste0("if=",path),"iflag=nocache","count=0","status=none"),error_on_status=FALSE,timeout=10000)
+    invisible(released$status==0L)
+  },error=function(e)invisible(FALSE))
+}
 provisioning_file_valid <- function(path,file,hash=TRUE) {
-  file.exists(path)&&!dir.exists(path)&&isTRUE(file.info(path)$size==file$bytes)&&
+  valid<-file.exists(path)&&!dir.exists(path)&&isTRUE(file.info(path)$size==file$bytes)&&
     (!hash||identical(digest::digest(file=path,algo="sha256"),file$sha256))
+  if(valid&&hash&&file$bytes>=32*1024^2)provisioning_release_file_cache(path)
+  valid
 }
 provisioning_ready <- function(cfg,id,catalog=provisioning_catalog(cfg),hash=FALSE) {
   d<-catalog$datasets[[id]];p<-provisioning_path(cfg,id,catalog)

@@ -4,8 +4,11 @@ An independent Shiny application for medulloblastoma gene exploration, developin
 cerebellum expression, functional evidence, DepMap and integrated biological reports.
 Maintainer: Dave Ng <davengis@gmail.com>.
 
-This source-only release is prepared locally. It is not yet approved for public
-deployment. See docs/CLOUD_RELEASE.md for the release gates and exact Cloud settings.
+Live app: https://01a0f2cd-93d2-c957-6aff-8e7c0c5e4524.share.connect.posit.cloud/
+
+Published with maintainer approval. Cloud startup and hosted biological queries
+have passed under Linux/R 4.6.0. See docs/CLOUD_RELEASE.md for settings and
+the scope of resource validation.
 
 Use repository-root app.R. The production dependency lock is renv.lock; Connect
 Cloud consumes the accompanying manifest.json. Reference data are downloaded and
@@ -18,7 +21,7 @@ substituted for current results. Source release labels and provenance are retain
 
 Reference downloads, usage limitations, attribution and provisioning behavior are
 documented in docs/CLOUD_RELEASE.md and docs/CEREBELLUM.md. The GitHub Release URLs
-in config/datasets.json are reserved for the proposed release and are not live yet.
+in config/datasets.json point to the published, versioned data release.
 
 The Free-tier profile sets MB_INTEGRATED_REPORT=false to retain memory headroom.
 Biological modules and individual analysis downloads remain available. Full reports
