@@ -7,6 +7,8 @@ for (package in c("shiny", "bslib")) {
   if (!requireNamespace(package, quietly = TRUE))
     stop("Install web dependencies with: Rscript scripts/install-dependencies.R --shiny")
 }
+# The Cloud entry point runs from the repository root, not shiny/.
+shiny::addResourcePath("medulloblast-assets", file.path(root, "shiny", "www"))
 cfg <- core$read_server_config(file.path(root, "config", "defaults.json"))
 cfg$output_dir <- file.path(root, "outputs")
 cfg$app_root <- root

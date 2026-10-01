@@ -9,7 +9,7 @@ h1 {font-size:22px} h2 {font-size:22px} h3 {font-size:19px} h4 {font-size:16px}
 .analysis-rendering{display:none}.analysis-rendering-busy .analysis-ready{display:none}.analysis-rendering-busy .analysis-rendering{display:block}
 .dashboard-nav > .row > :first-child {flex:0 0 220px;width:220px;background:white;border:1px solid var(--dashboard-border);border-radius:10px;align-self:start;position:sticky;top:12px;padding:14px 8px;overflow-wrap:anywhere}
 .dashboard-nav > .row > :last-child {flex:1;min-width:0}
-.dashboard-nav > .row > :first-child::before {content:'MedulloBLAST';display:block;font-size:18px;font-weight:650;padding:8px 0 20px 35px;line-height:1.35;background:url('cerebellum.svg') no-repeat 2px 7px;background-size:28px}
+.dashboard-nav > .row > :first-child::before {content:'MedulloBLAST';display:block;font-size:18px;font-weight:650;padding:8px 0 20px 35px;line-height:1.35;background:url('medulloblast-assets/cerebellum.svg?v=20261001') no-repeat 2px 7px;background-size:28px}
 .dashboard-nav .nav-pills .nav-link {border-radius:6px;padding:10px 12px;color:#4A5E78;font-size:13px}
 .dashboard-nav .nav-pills .nav-link.active {background:#E7EFFC;color:#204F95;font-weight:650}
 .dashboard-nav > .row > .tab-content {min-width:0}

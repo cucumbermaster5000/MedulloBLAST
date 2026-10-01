@@ -5,8 +5,8 @@ explorer_ui <- function() {
     bslib::card(bslib::card_header(title), shiny::p("Not implemented yet")))
   bslib::page_fluid(
     title = "MedulloBLAST",
-    shiny::tags$head(shiny::tags$link(rel="icon",type="image/svg+xml",href="cerebellum.svg?v=0.4.3"),
-      shiny::tags$script(src="loading.js")),
+    shiny::tags$head(shiny::tags$link(rel="icon",type="image/svg+xml",sizes="any",href="medulloblast-assets/cerebellum.svg?v=20261001"),
+      shiny::tags$script(src="medulloblast-assets/loading.js")),
     theme = bslib::bs_theme(version = 5, primary = "#285DA8"),
     explorer_style(),explorer_dashboard_style(),explorer_toolbar(),shiny::uiOutput("reference_status"),shiny::uiOutput("status"),
     shiny::div(class="dashboard-nav",bslib::navset_pill_list(id = "section",widths=c(2,10),well=FALSE,

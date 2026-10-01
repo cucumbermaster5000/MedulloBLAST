@@ -2589,7 +2589,7 @@
       "checksum": "158bde062ab5296d0f7cb529b9aac870"
     },
     "shiny/app.R": {
-      "checksum": "b3e63862b234d5db5681085a321e8944"
+      "checksum": "ee6217ee83b92a9a98b698cfc9cb8aed"
     },
     "shiny/biology_interface.R": {
       "checksum": "69cf36c1d9835429a8689cc8259c09d7"
@@ -2601,7 +2601,7 @@
       "checksum": "d14d40fec208fa950e6772ddf063c85b"
     },
     "shiny/dashboard.css": {
-      "checksum": "5e92f82c660cb18ab6319855b59c6b6a"
+      "checksum": "8e3530ad289e2f95a0f221e7a4ea5694"
     },
     "shiny/depmap_interface.R": {
       "checksum": "ac3b394cb017f2df87e5c3edd15b77b4"
@@ -2613,7 +2613,7 @@
       "checksum": "ad0571238e11351664b4beac3b9bec7b"
     },
     "shiny/interface.R": {
-      "checksum": "ac5c9d3083ea7f4b3002b325e3afcb7e"
+      "checksum": "6173ca82e56a6dd0d3b85d83e8aabab2"
     },
     "shiny/provisioning.R": {
       "checksum": "a79a178c54fa2d26ebcd25583bf329cf"
