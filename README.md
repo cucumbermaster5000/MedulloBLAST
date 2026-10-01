@@ -4,7 +4,7 @@ An independent Shiny application for medulloblastoma gene exploration, developin
 cerebellum expression, functional evidence, DepMap and integrated biological reports.
 Maintainer: Dave Ng <davengis@gmail.com>.
 
-Live app: https://01a0f2cd-93d2-c957-6aff-8e7c0c5e4524.share.connect.posit.cloud/
+Live app: https://cucumbermaster5000-medulloblast.share.connect.posit.cloud/
 
 Published with maintainer approval. Cloud startup and hosted biological queries
 have passed under Linux/R 4.6.0. See docs/CLOUD_RELEASE.md for settings and

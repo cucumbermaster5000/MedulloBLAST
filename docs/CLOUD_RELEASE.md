@@ -3,6 +3,8 @@
 Maintainer: Dave Ng <davengis@gmail.com>.
 Published dedicated repository: https://github.com/cucumbermaster5000/MedulloBLAST.
 Published data release: cerebellum-2026-09-25-v1.
+Live app: https://cucumbermaster5000-medulloblast.share.connect.posit.cloud/
+
 
 ## Validation status and runtime
 
@@ -85,3 +87,6 @@ logs for package/R compatibility; test empty-cache start, retry/restart, HLX, MY
 cancellation, two sessions and individual downloads. Inspect Cloud memory and CPU charts.
 Repeat from another computer with the local app stopped. Do not announce the site until
 these checks pass. No GitHub or Cloud publication occurs during local preparation.
+The pink cerebellum favicon and navigation icon use an explicitly registered
+Shiny resource path so they load from the repository-root Cloud entry point.
+The custom sharing name is `medulloblast`; the original content-ID URL remains valid.
