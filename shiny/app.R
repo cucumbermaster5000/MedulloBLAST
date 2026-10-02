@@ -16,6 +16,7 @@ cfg$public_app <- TRUE
 cfg <- core$provisioning_config(cfg)
 options(shiny.sanitize.errors=TRUE)
 source(file.path(root,"shiny","display.R"),local=TRUE)
+source(file.path(root,"shiny","capacity.R"),local=TRUE)
 source(file.path(root,"shiny","runtime.R"),local=TRUE)
 source(file.path(root,"shiny","provisioning.R"),local=TRUE)
 reference_service <- explorer_provisioning_service(cfg,core)

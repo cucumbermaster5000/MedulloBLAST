@@ -1,7 +1,7 @@
 # Connect Cloud sets R_CONFIG_ACTIVE. Explicit Cloud Variables take precedence.
 apply_cloud_defaults <- function() {
   if(Sys.getenv('R_CONFIG_ACTIVE') != 'connect_cloud')return(invisible(NULL))
-  values <- c(MB_MAX_WORKERS='1', MB_INTEGRATED_REPORT='false', MB_REPORT_PDF='false',
+  values <- c(MB_MAX_WORKERS='1', MB_SESSION_IDLE_SECONDS='900', MB_INTEGRATED_REPORT='false', MB_REPORT_PDF='false',
     MB_AUTO_PROVISION_DATA='true', MB_ALLOW_DATA_DOWNLOADS='false',
     MB_WORKER_TIMEOUT_SECONDS='600', MB_PROVISION_TIMEOUT_SECONDS='1800',
     OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1',

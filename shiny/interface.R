@@ -6,9 +6,10 @@ explorer_ui <- function() {
   bslib::page_fluid(
     title = "MedulloBLAST",
     shiny::tags$head(shiny::tags$link(rel="icon",type="image/svg+xml",sizes="any",href="medulloblast-assets/cerebellum.svg?v=20261001"),
-      shiny::tags$script(src="medulloblast-assets/loading.js")),
+      shiny::tags$script(src="medulloblast-assets/loading.js"),
+      shiny::tags$script(src="medulloblast-assets/session-policy.js")),
     theme = bslib::bs_theme(version = 5, primary = "#285DA8"),
-    explorer_style(),explorer_dashboard_style(),explorer_toolbar(),shiny::uiOutput("reference_status"),shiny::uiOutput("status"),
+    explorer_style(),explorer_dashboard_style(),explorer_toolbar(),explorer_capacity_notice(),shiny::uiOutput("reference_status"),shiny::uiOutput("status"),
     shiny::div(class="dashboard-nav",bslib::navset_pill_list(id = "section",widths=c(2,10),well=FALSE,
       bslib::nav_panel("Overview", shiny::uiOutput("gene_glance"),shiny::uiOutput("overview"),shiny::uiOutput("report_overview")),
       bslib::nav_panel("Pediatric Pan-Cancer",shiny::uiOutput("pfister_summary"),
@@ -93,6 +94,7 @@ write_explorer_download <- function(result, kind, file) {
 explorer_server <- function(core, cfg, reference_service=NULL) {
   force(core); force(cfg)
   function(input, output, session) {
+    if(exists("explorer_session_policy",mode="function"))explorer_session_policy(input,output,session)
     if(exists("explorer_session_config",mode="function"))cfg<-explorer_session_config(cfg,session)
     if(exists("explorer_provisioning_server",mode="function"))explorer_provisioning_server(input,output,session,cfg,core,reference_service)
     result <- shiny::reactiveVal(NULL)
@@ -163,7 +165,7 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
 
     shiny::observe({
       main_tick();if(is.null(main_job))return()
-      if(explorer_worker_expired(main_started,cfg)){
+      if(explorer_worker_expired(main_started,cfg,main_job)){
         main_job$kill();main_job<<-NULL;busy(FALSE);failure("R2 analysis timed out. Please retry later.");return()
       }
       if(main_job$is_alive()){shiny::invalidateLater(500,session);return()}
@@ -219,7 +221,7 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
     },ignoreInit=TRUE)
     shiny::observe({
       pfister_tick();if(is.null(pfister_job))return()
-      if(explorer_worker_expired(pfister_started,cfg)){
+      if(explorer_worker_expired(pfister_started,cfg,pfister_job)){
         pfister_job$kill();pfister_job<<-NULL;pfister(list(gene=pfister_gene,analysis=NULL));return()
       }
       if(pfister_job$is_alive()){shiny::invalidateLater(500,session);return()}

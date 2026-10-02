@@ -34,7 +34,7 @@ explorer_biology_server <- function(input,output,session,cfg,result,core) {
     folder<-file.path(cfg$output_dir %||% file.path(root,"outputs"),"biology-jobs");dir.create(folder,recursive=TRUE,showWarnings=FALSE)
     logfile<-tempfile(paste0(gene,"-"),folder,fileext=".log")
     state(list(status="running",gene=gene,message="Loading documented biology in the background. Other tabs remain available."))
-    job<<-tryCatch(callr::r_bg(function(root,cfg,gene,refresh) {
+    job<<-tryCatch(explorer_r_bg(function(root,cfg,gene,refresh) {
       source(file.path(root,"R","load_core.R"))
       core<-load_r2_core(root)
       lock<-core$deployment_worker_slot(cfg);on.exit(filelock::unlock(lock),add=TRUE)
@@ -57,7 +57,7 @@ explorer_biology_server <- function(input,output,session,cfg,result,core) {
   shiny::observe({
     tick()
     if(is.null(job))return()
-    if(exists("explorer_worker_expired",mode="function") && explorer_worker_expired(started,cfg)){
+    if(exists("explorer_worker_expired",mode="function") && explorer_worker_expired(started,cfg,job)){
       job$kill();job<<-NULL;state(list(status="failed",gene=current_gene,message="Functional biology timed out. Please retry later."));return()
     }
     if(job$is_alive()) {shiny::invalidateLater(500,session);return()}

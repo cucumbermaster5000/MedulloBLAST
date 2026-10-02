@@ -15,7 +15,7 @@ explorer_depmap_ui <- function() bslib::nav_panel("DepMap",
 start_depmap_worker <- function(cfg,gene) {
   folder<-file.path(cfg$output_dir,"depmap-jobs");dir.create(folder,recursive=TRUE,showWarnings=FALSE)
   logfile<-tempfile("depmap-",folder,fileext=".log")
-  callr::r_bg(function(root,cfg,gene){source(file.path(root,"R","load_core.R"));core<-load_r2_core(root);lock<-core$deployment_worker_slot(cfg);on.exit(filelock::unlock(lock),add=TRUE);core$get_depmap_profile(cfg,gene)},
+  explorer_r_bg(function(root,cfg,gene){source(file.path(root,"R","load_core.R"));core<-load_r2_core(root);lock<-core$deployment_worker_slot(cfg);on.exit(filelock::unlock(lock),add=TRUE);core$get_depmap_profile(cfg,gene)},
     args=list(root=cfg$app_root,cfg=cfg,gene=gene),libpath=.libPaths(),stdout=logfile,stderr=logfile,supervise=TRUE)
 }
 
@@ -34,7 +34,7 @@ explorer_depmap_server <- function(input,output,session,cfg,core,worker_start=st
   },ignoreInit=TRUE)
   shiny::observe({
     tick();if(is.null(job))return()
-    if(exists("explorer_worker_expired",mode="function") && explorer_worker_expired(started,cfg)){
+    if(exists("explorer_worker_expired",mode="function") && explorer_worker_expired(started,cfg,job)){
       job$kill();job<<-NULL;state(list(status="failed",message="DepMap timed out. Please retry later; other analyses remain available."));return()
     }
     if(job$is_alive()){shiny::invalidateLater(500,session);return()}

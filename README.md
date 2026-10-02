@@ -26,3 +26,7 @@ in config/datasets.json point to the published, versioned data release.
 The Free-tier profile sets MB_INTEGRATED_REPORT=false to retain memory headroom.
 Biological modules and individual analysis downloads remain available. Full reports
 remain available in local deployments. See docs/FREE_TIER_RESOURCE_CHECK.md.
+
+Shared free-hosting capacity: up to five connected sessions, one heavy analysis
+task at a time. Inactive sessions disconnect after 15 minutes; the app warns
+before disconnection and provides a reconnect button. Download results before leaving.

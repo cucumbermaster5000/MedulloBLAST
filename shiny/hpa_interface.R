@@ -6,7 +6,7 @@ explorer_hpa_ui <- function() bslib::nav_panel("ProteinAtlas.org Profile",
   do.call(bslib::navset_tab,c(list(id="hpa_section"),lapply(names(hpa_sections),function(key)
     bslib::nav_panel(hpa_sections[[key]],value=key,shiny::uiOutput(paste0("hpa_content_",key)))))))
 start_hpa_worker <- function(cfg,gene) {
-  callr::r_bg(function(cfg,gene){
+  explorer_r_bg(function(cfg,gene){
     source(file.path(cfg$app_root,"R","load_core.R"));core<-load_r2_core(cfg$app_root)
     lock<-core$deployment_worker_slot(cfg);on.exit(filelock::unlock(lock),add=TRUE)
     core$get_hpa_profile(cfg,gene)
@@ -26,7 +26,7 @@ explorer_hpa_server <- function(input,output,session,cfg,core,biology,worker_sta
   },ignoreInit=TRUE)
   shiny::observe({
     tick();if(is.null(job))return()
-    if(explorer_worker_expired(started,cfg)){job$kill();job<<-NULL;busy(FALSE);state(list(status="unavailable"));return()}
+    if(explorer_worker_expired(started,cfg,job)){job$kill();job<<-NULL;busy(FALSE);state(list(status="unavailable"));return()}
     if(job$is_alive()){shiny::invalidateLater(500,session);return()}
     x<-tryCatch(job$get_result(),error=function(e)list(status="unavailable"));job<<-NULL;state(x);busy(FALSE)
   })

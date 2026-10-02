@@ -12,6 +12,6 @@
     "MB_REPORT_PDF": false,
     "MB_MAX_WORKERS": 1,
     "cloud_processes": 1,
-    "cloud_connections": 2
+    "cloud_connections": 5
   }
 }

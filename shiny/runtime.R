@@ -9,7 +9,12 @@ explorer_session_config <- function(cfg,session) {
   })
   cfg
 }
-explorer_worker_expired <- function(started,cfg) {
+explorer_worker_expired <- function(started,cfg,job=NULL) {
+  if(!is.null(job)&&is.function(job$started_at)) {
+    launched<-job$started_at()
+    if(is.null(launched))return(!is.null(started)&&as.numeric(difftime(Sys.time(),started,units="secs"))>900)
+    started<-launched
+  }
   limit<-suppressWarnings(as.numeric(Sys.getenv("MB_WORKER_TIMEOUT_SECONDS","600")))
   if(!is.finite(limit)||limit<30)limit<-600
   !is.null(started) && as.numeric(difftime(Sys.time(),started,units="secs"))>limit
@@ -31,7 +36,7 @@ explorer_log_error <- function(stage,error) {
 
 start_explorer_worker <- function(cfg,gene,kind="main") {
   logfile<-tempfile(paste0(kind,"-"),tmpdir=cfg$output_dir,fileext=".log")
-  callr::r_bg(function(cfg,gene,kind){
+  explorer_r_bg(function(cfg,gene,kind){
     source(file.path(cfg$app_root,"R","load_core.R"));core<-load_r2_core(cfg$app_root)
     lock<-core$deployment_worker_slot(cfg);on.exit(filelock::unlock(lock),add=TRUE)
     if(kind=="pfister")core$analyze_pfister_pan_cancer(core$get_pfister_expression(cfg,gene)) else core$analyze_explorer_request(cfg,gene)

@@ -48,7 +48,7 @@ start_integrated_report_worker <- function(cfg, snapshot, out_dir) {
   if(!explorer_reports_enabled()) stop('Integrated reports are disabled for this deployment.')
   snapshot_file <- file.path(out_dir,"snapshot-input.rds"); dir.create(out_dir,recursive=TRUE,showWarnings=FALSE); saveRDS(snapshot,snapshot_file)
   logfile <- file.path(out_dir,"report-build.log")
-  callr::r_bg(function(root,cfg,snapshot_file,out_dir) {
+  explorer_r_bg(function(root,cfg,snapshot_file,out_dir) {
     source(file.path(root,"R","load_core.R")); core <- load_r2_core(root)
     lock<-core$deployment_worker_slot(cfg);on.exit(filelock::unlock(lock),add=TRUE)
     pdf<-tolower(Sys.getenv('MB_REPORT_PDF','true'))=='true'
@@ -90,7 +90,7 @@ explorer_report_server <- function(input,output,session,cfg,core,result,pfister,
   },ignoreInit=TRUE)
   shiny::observe({
     tick(); if(is.null(job))return()
-    if(exists('explorer_worker_expired',mode='function')&&explorer_worker_expired(started,cfg)){job$kill();job<<-NULL;state(list(status='failed',message='Report generation timed out. Please retry.'));return()}
+    if(exists('explorer_worker_expired',mode='function')&&explorer_worker_expired(started,cfg,job)){job$kill();job<<-NULL;state(list(status='failed',message='Report generation timed out. Please retry.'));return()}
     if(job$is_alive()){shiny::invalidateLater(500,session);return()}
     built <- tryCatch(job$get_result(),error=function(e)NULL); job <<- NULL; gene <- state()$gene
     if(is.null(built)) state(list(status="failed",gene=gene,message="Report generation failed. The dashboard results remain available.")) else state(list(status="ready",gene=gene,artifacts=built,message="Report ready."))

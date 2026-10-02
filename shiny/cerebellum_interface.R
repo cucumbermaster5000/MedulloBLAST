@@ -28,7 +28,7 @@ explorer_cerebellum_ui<-function() {
       shiny::a('CC BY 4.0',href='https://creativecommons.org/licenses/by/4.0/',target='_blank',rel='noopener')))
 }
 
-start_cerebellum_worker<-function(cfg,gene) callr::r_bg(function(cfg,gene){
+start_cerebellum_worker<-function(cfg,gene) explorer_r_bg(function(cfg,gene){
   source(file.path(cfg$app_root,'R/load_core.R'));core<-load_r2_core(cfg$app_root)
   lock<-core$deployment_worker_slot(cfg);on.exit(filelock::unlock(lock),add=TRUE)
   core$get_cerebellum_profile(cfg,gene)
@@ -59,7 +59,7 @@ explorer_cerebellum_server<-function(input,output,session,cfg,core,worker_start=
   shiny::observe({gene<-pending();if(!is.null(gene)&&reference()$state=='ready'){pending(NULL);launch(gene)}})
   shiny::observe({
     tick();if(is.null(job))return()
-    if(exists('explorer_worker_expired',mode='function')&&explorer_worker_expired(started,cfg)){job$kill();job<<-NULL;busy(FALSE);state(list(error=TRUE));return()}
+    if(exists('explorer_worker_expired',mode='function')&&explorer_worker_expired(started,cfg,job)){job$kill();job<<-NULL;busy(FALSE);state(list(error=TRUE));return()}
     if(job$is_alive()){shiny::invalidateLater(250,session);return()}
     x<-tryCatch(job$get_result(),error=function(e){message('[Cerebellum query] ',conditionMessage(e));list(error=TRUE)})
     job<<-NULL;busy(FALSE)

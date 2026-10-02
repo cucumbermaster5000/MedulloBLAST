@@ -10,7 +10,7 @@ Live app: https://cucumbermaster5000-medulloblast.share.connect.posit.cloud/
 
 The Free account has been verified through the Cloud API: 4096 MB memory, one CPU,
 five apps, 20 monthly compute credits, and a 1 GiB source bundle limit. Automatic
-republishing is disabled. The live app uses one Shiny process and two connections.
+republishing is disabled. The live app uses one Shiny process and up to five connections.
 
 Cloud installed all 80 locked packages and started the app under Ubuntu 22.04 / R
 4.6.0. Hosted HLX, MYC and SLC16A1 cold/warm queries, cancellation and two sessions
@@ -90,3 +90,12 @@ these checks pass. No GitHub or Cloud publication occurs during local preparatio
 The pink cerebellum favicon and navigation icon use an explicitly registered
 Shiny resource path so they load from the repository-root Cloud entry point.
 The custom sharing name is `medulloblast`; the original content-ID URL remains valid.
+
+## Shared capacity and inactivity
+
+Analysis tasks wait in a FIFO queue before an R subprocess is created. One heavy
+worker runs at a time; each task gets its analysis deadline after launch. Queued
+tasks are cancelled when their session ends. A visible notice explains sharing.
+Sessions disconnect after 15 minutes without user interaction, with a warning and
+a reconnect button. Background updates do not reset the inactivity timer.
+The five-session rollout requires local and hosted workload/memory acceptance.

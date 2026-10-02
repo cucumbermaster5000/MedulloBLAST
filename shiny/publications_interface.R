@@ -10,7 +10,7 @@ explorer_publications_ui <- function() bslib::nav_panel("Publications",
 start_publication_worker <- function(cfg,gene,sort,scope,refresh) {
   folder<-file.path(cfg$output_dir,"publication-jobs");dir.create(folder,recursive=TRUE,showWarnings=FALSE)
   logfile<-tempfile("pubmed-",folder,fileext=".log")
-  callr::r_bg(function(root,cfg,gene,sort,scope,refresh) {
+  explorer_r_bg(function(root,cfg,gene,sort,scope,refresh) {
     source(file.path(root,"R","load_core.R"));core<-load_r2_core(root)
     lock<-core$deployment_worker_slot(cfg);on.exit(filelock::unlock(lock),add=TRUE)
     core$get_pubmed_publications(cfg,gene,n=10L,sort=sort,scope=scope,refresh=refresh)
@@ -40,7 +40,7 @@ explorer_publications_server <- function(input,output,session,cfg,core,worker_st
   shiny::observeEvent(input$publication_refresh,launch(TRUE),ignoreInit=TRUE)
   shiny::observe({
     tick();if(is.null(job))return()
-    if(exists("explorer_worker_expired",mode="function") && explorer_worker_expired(started,cfg)){
+    if(exists("explorer_worker_expired",mode="function") && explorer_worker_expired(started,cfg,job)){
       job$kill();job<<-NULL;state(list(status="failed",message="PubMed timed out. Please retry later; other analyses remain available."));return()
     }
     if(job$is_alive()){shiny::invalidateLater(500,session);return()}
