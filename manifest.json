@@ -2412,7 +2412,7 @@
       "checksum": "060c3a3a2117e910cd03e8a4b0f449db"
     },
     "DESCRIPTION": {
-      "checksum": "0d5c99aac2a83dea25a9c124ee24ac4e"
+      "checksum": "71fc14897415fed753017ce0565ac2cd"
     },
     "LICENSE": {
       "checksum": "af616b9b57e62cbe5a6dcae98b11b011"
@@ -2544,10 +2544,10 @@
       "checksum": "7f49ddd67067597ee8ccf687a3678f27"
     },
     "README.md": {
-      "checksum": "f49ca0c76cfd039cbebac0aa72006cd8"
+      "checksum": "10d92e500729369f9775c22124c7b0ec"
     },
     "RELEASE_VALIDATION.json": {
-      "checksum": "2a495d1e1a4c46e2d00c905aa5a9d8b6"
+      "checksum": "30e4dc5ea34990ee1260b7c6d2e736ba"
     },
     "app.R": {
       "checksum": "fddb7c47d1158e1823a635c85fa6d1a0"
@@ -2595,13 +2595,13 @@
       "checksum": "78988c325c033754a728d4bba594b662"
     },
     "shiny/capacity.R": {
-      "checksum": "37dc4bf00b4d97c493eaba74ffdce46f"
+      "checksum": "f65be3e457aae3bba37342c91b0b9832"
     },
     "shiny/cerebellum_interface.R": {
       "checksum": "6751a843816beea8a461463f896af098"
     },
     "shiny/dashboard.R": {
-      "checksum": "d14d40fec208fa950e6772ddf063c85b"
+      "checksum": "845042ad1e05624af6757173752eb9c5"
     },
     "shiny/dashboard.css": {
       "checksum": "8e3530ad289e2f95a0f221e7a4ea5694"

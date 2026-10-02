@@ -68,6 +68,7 @@ explorer_create_worker_queue <- function(start_process=callr::r_bg, limit=1L) {
 }
 
 explorer_worker_queue <- explorer_create_worker_queue(limit=1L)
+explorer_connected_sessions <- new.env(parent=emptyenv())
 explorer_r_bg <- function(...) {
   session<-shiny::getDefaultReactiveDomain()
   job<-explorer_worker_queue$submit(list(...),if(is.null(session))NULL else session$token)
@@ -80,6 +81,7 @@ explorer_idle_seconds <- function() {
 }
 explorer_capacity_notice <- function() shiny::div(id='hosting-notice',class='alert alert-info',
   shiny::strong('Shared free hosting: '),
+  'A maximum of 5 users can be connected at once. Each browser session uses one slot. ',
   'Limited computing resources allow one heavy analysis task at a time. Other tasks wait in a queue. ',
   sprintf('Your session disconnects after %s minutes without interaction to free space for other users. ',format(explorer_idle_seconds()/60,trim=TRUE)),
   'Download any results you want to keep before leaving.',
@@ -91,7 +93,12 @@ explorer_capacity_notice <- function() shiny::div(id='hosting-notice',class='ale
 explorer_session_policy <- function(input,output,session,now=Sys.time,limit=explorer_idle_seconds()) {
   # One owner callback, rather than retaining every completed job for the
   # lifetime of the session. Completed handles release their result process.
-  session$onSessionEnded(function()explorer_worker_queue$cancel_owner(session$token))
+  assign(session$token,TRUE,envir=explorer_connected_sessions)
+  session$onSessionEnded(function(){
+    if(exists(session$token,envir=explorer_connected_sessions,inherits=FALSE))
+      rm(list=session$token,envir=explorer_connected_sessions)
+    explorer_worker_queue$cancel_owner(session$token)
+  })
   last<-now();warned<-FALSE;closing<-FALSE
   shiny::observeEvent(input$mb_user_activity,{
     if(!closing){last<<-now();warned<<-FALSE;session$sendCustomMessage('mb-session-policy',list(type='active'))}
@@ -113,7 +120,9 @@ explorer_session_policy <- function(input,output,session,now=Sys.time,limit=expl
   output$capacity_status<-shiny::renderUI({
     shiny::invalidateLater(1000,session)
     n<-explorer_worker_queue$counts(session$token)
-    if(n$waiting>0)shiny::tags$small(sprintf('Your analysis: %d task(s) waiting; %d running. Please keep this tab open.',n$waiting,n$running))
-    else if(n$running>0)shiny::tags$small('Your analysis is running.')
+    shiny::tagList(
+      shiny::tags$small(id='mb-connected-sessions',sprintf('Connected sessions: %d of 5',length(ls(explorer_connected_sessions,all.names=TRUE)))),
+      if(n$waiting>0)shiny::tags$small(shiny::tags$br(),sprintf('Your analysis: %d task(s) waiting; %d running. Please keep this tab open.',n$waiting,n$running))
+      else if(n$running>0)shiny::tags$small(shiny::tags$br(),'Your analysis is running.'))
   })
 }

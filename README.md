@@ -30,3 +30,5 @@ remain available in local deployments. See docs/FREE_TIER_RESOURCE_CHECK.md.
 Shared free-hosting capacity: up to five connected sessions, one heavy analysis
 task at a time. Inactive sessions disconnect after 15 minutes; the app warns
 before disconnection and provides a reconnect button. Download results before leaving.
+
+The live counter shows connected browser sessions out of five; multiple tabs may use multiple slots. Release preparation stamps the UTC update date and unique build ID into DESCRIPTION automatically. The displayed semantic version also comes from DESCRIPTION.
