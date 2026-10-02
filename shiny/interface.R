@@ -1,4 +1,21 @@
 # Presentation and orchestration only. Scientific computations live in R/.
+explorer_pfister_legend <- function() {
+  labels <- c(atrt="Atypical teratoid/rhabdoid tumor", epd_it="Infratentorial ependymoma",
+    etmr="Embryonal tumor with multilayered rosettes", hgg_k27m="High-grade glioma with a histone H3 K27M mutation",
+    hggother="Other high-grade glioma", mb_group3="Medulloblastoma, Group 3", mb_group4="Medulloblastoma, Group 4",
+    mb_shh="Medulloblastoma, sonic hedgehog (SHH) subgroup", mb_wnt="Medulloblastoma, WNT pathway subgroup",
+    pa="Pilocytic astrocytoma", ews="Ewing sarcoma", nb="Neuroblastoma", os="Osteosarcoma",
+    rms="Rhabdomyosarcoma", `t-all`="T-cell acute lymphoblastic leukemia")
+  shiny::div(id="pfister_abbreviation_legend", class="mt-3 mb-3",
+    shiny::h4("Pfister cancer-type abbreviations"),
+    shiny::div(class="table-responsive", shiny::tags$table(class="table table-sm",
+      shiny::tags$thead(shiny::tags$tr(shiny::tags$th(scope="col","Plot label"),shiny::tags$th(scope="col","Meaning"))),
+      shiny::tags$tbody(lapply(names(labels),function(key)shiny::tags$tr(shiny::tags$th(scope="row",key),shiny::tags$td(labels[[key]])))))),
+    shiny::p(class="small text-muted", "These are the source dataset's categories. IT means infratentorial (below the tentorium); HGG means high-grade glioma; MB means medulloblastoma. The original labels are retained in plots and patient downloads."),
+    shiny::p(class="small text-muted", "FPKM means fragments per kilobase of transcript per million mapped reads. Expression is displayed as log2(1 + FPKM)."),
+    shiny::p(class="small text-muted", "Abbreviation reference: ",shiny::tags$a(href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9588607/",target="_blank",rel="noopener noreferrer","EWS::FLI1 and HOXD13 control tumor cell plasticity in Ewing sarcoma (Figure 1)"),". Labels describe the historical dataset, rather than updated diagnostic classifications."))
+}
+
 explorer_ui <- function() {
   biology_ui <- explorer_biology_ui()
   future <- function(title) bslib::nav_panel(title,
@@ -13,7 +30,7 @@ explorer_ui <- function() {
     shiny::div(class="dashboard-nav",bslib::navset_pill_list(id = "section",widths=c(2,10),well=FALSE,
       bslib::nav_panel("Overview", shiny::uiOutput("gene_glance"),shiny::uiOutput("overview"),shiny::uiOutput("report_overview")),
       bslib::nav_panel("Pediatric Pan-Cancer",shiny::uiOutput("pfister_summary"),
-        shiny::plotOutput("pfister_plot",height=explorer_plot_height("large")),explorer_report_control('pfister_pan_cancer'),
+        shiny::plotOutput("pfister_plot",height=explorer_plot_height("large")),explorer_report_control('pfister_pan_cancer'),explorer_pfister_legend(),
         shiny::h4("Expression summaries"),shiny::tableOutput("pfister_summaries"),
         shiny::h4("Sample types"),shiny::tableOutput("pfister_counts"),
         shiny::downloadButton("pfister_csv","Pfister patient CSV")),
@@ -21,7 +38,7 @@ explorer_ui <- function() {
         shiny::uiOutput("plot_heading"),
         shiny::div(style = "overflow-x:auto", shiny::div(
           shiny::plotOutput("subgroup_plot", height = explorer_plot_height()))),
-        explorer_report_control('r2_subgroups'),shiny::h4("Statistical comparison"),
+        explorer_report_control('r2_subgroups'),shiny::uiOutput('cavalli_subgroups_controls'),shiny::h4("Statistical comparison"),
         shiny::div(style = "overflow-x:auto", shiny::tableOutput("statistics")),
         shiny::p(class = "small text-muted", "The original omnibus result is unchanged. Additional pairwise evidence for clinical cohort selection is shown below."),
         shiny::uiOutput("selection_summary"),
@@ -31,7 +48,7 @@ explorer_ui <- function() {
         shiny::uiOutput("subtype_summary"),
         shiny::div(style="overflow-x:auto", shiny::div(
           shiny::plotOutput("subtype_plot", height=explorer_plot_height("large")))),
-        explorer_report_control('r2_subtypes'),shiny::h4("Descriptive statistics"),
+        explorer_report_control('r2_subtypes'),shiny::uiOutput('cavalli_subtypes_controls'),shiny::h4("Descriptive statistics"),
         shiny::div(style="overflow-x:auto", shiny::tableOutput("subtype_descriptives")),
         shiny::h4("Overall comparison"),
         shiny::div(style="overflow-x:auto", shiny::tableOutput("subtype_overall")),
@@ -100,6 +117,32 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
     result <- shiny::reactiveVal(NULL)
     failure <- shiny::reactiveVal(NULL)
     busy <- shiny::reactiveVal(FALSE)
+    # One snapshot per download request; filenames and contents share the same result.
+    for(export_kind in c('subgroups','subtypes','metastasis','survival')) {
+      cohorts<-if(export_kind %in% c('metastasis','survival'))c('all','wnt','shh','group3','group4')else 'all'
+      for(export_cohort in cohorts)local({
+        kind<-export_kind;cohort<-export_cohort
+        id<-paste0('cavalli_',kind,if(kind %in% c('metastasis','survival'))paste0('_',cohort)else '')
+        output[[paste0(id,'_controls')]]<-shiny::renderUI({
+          x<-result();if(is.null(x)||busy())return(shiny::tags$small('Plot data downloads are available when this analysis is ready.'))
+          if(!is.function(core$cavalli_export_analysis))return(NULL)
+          a<-core$cavalli_export_analysis(x,kind,cohort)
+          if(is.null(a$plot)||!nrow(a$plot$data))return(NULL)
+          shiny::tagList(shiny::div(class='d-flex flex-wrap gap-2',
+            shiny::downloadButton(paste0(id,'_csv'),'Download plot data (CSV)'),
+            shiny::downloadButton(paste0(id,'_zip'),'Download reproduction package (ZIP)')),
+            shiny::tags$small('Uses the patients and settings shown above. ZIP includes source/method notes and a standalone R plotting script.'))
+        })
+        for(export_format in c('csv','zip'))local({
+          format<-export_format;snapshot<-NULL
+          capture<-function(){shiny::req(!busy(),result());core$cavalli_export_payload(result(),kind,cohort,if(is.null(cfg$app_root))getwd()else cfg$app_root)}
+          output[[paste0(id,'_',format)]]<-shiny::downloadHandler(
+            filename=function(){snapshot<<-capture();core$cavalli_export_name(snapshot,format)},
+            contentType=if(format=='csv')'text/csv'else'application/zip',
+            content=function(file){on.exit(snapshot<<-NULL,add=TRUE);if(is.null(snapshot))snapshot<<-capture();core$write_cavalli_export(snapshot,file,format,if(is.null(cfg$app_root))getwd()else cfg$app_root)})
+        })
+      })
+    }
     main_job<-NULL;main_started<-NULL;main_gene<-NULL;main_tick<-shiny::reactiveVal(0L)
     session$onSessionEnded(function(){if(!is.null(main_job) && main_job$is_alive())main_job$kill()})
     biology <- if(exists("explorer_biology_server",mode="function")) explorer_biology_server(input,output,session,cfg,result,core) else shiny::reactive(NULL)
@@ -427,7 +470,7 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
               lapply(a$warnings,function(w)shiny::p(w)),
               shiny::div(style="overflow-x:auto",shiny::tableOutput(paste0(id,"_counts"))),
               shiny::div(style="overflow-x:auto",shiny::tableOutput(paste0(id,"_stats"))),
-              if(!is.null(a$plot)) shiny::tagList(shiny::plotOutput(paste0(id,"_plot"),height=explorer_plot_height()),explorer_report_control(id,input)),
+              if(!is.null(a$plot)) shiny::tagList(shiny::plotOutput(paste0(id,"_plot"),height=explorer_plot_height()),explorer_report_control(id,input),shiny::uiOutput(paste0("cavalli_",id,"_controls"))),
               shiny::div(style="overflow-x:auto",shiny::tableOutput(paste0(id,"_details"))))
           }))
       })

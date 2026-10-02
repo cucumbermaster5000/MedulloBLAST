@@ -2412,7 +2412,7 @@
       "checksum": "060c3a3a2117e910cd03e8a4b0f449db"
     },
     "DESCRIPTION": {
-      "checksum": "71fc14897415fed753017ce0565ac2cd"
+      "checksum": "018624df10c45b21580f33cd988257c3"
     },
     "LICENSE": {
       "checksum": "af616b9b57e62cbe5a6dcae98b11b011"
@@ -2425,6 +2425,9 @@
     },
     "R/cache.R": {
       "checksum": "0e74f4503b2bd10b24695a63c8e2fccf"
+    },
+    "R/cavalli_exports.R": {
+      "checksum": "4bde7d4cba461e75da59acc984f8de24"
     },
     "R/cerebellum.R": {
       "checksum": "92fb24bbac23ab0907a2dc512abb2876"
@@ -2469,7 +2472,7 @@
       "checksum": "7cbc5d006596343b291c046181199239"
     },
     "R/load_core.R": {
-      "checksum": "5ead5c9d7790434d729bfa510e66aac6"
+      "checksum": "27986b24743e9ab49afd5b5cca1f6f2c"
     },
     "R/mb_gene_profile.R": {
       "checksum": "d41d8cd98f00b204e9800998ecf8427e"
@@ -2544,7 +2547,7 @@
       "checksum": "7f49ddd67067597ee8ccf687a3678f27"
     },
     "README.md": {
-      "checksum": "10d92e500729369f9775c22124c7b0ec"
+      "checksum": "3d75d5985b7a06e44b117be270a4a68f"
     },
     "RELEASE_VALIDATION.json": {
       "checksum": "30e4dc5ea34990ee1260b7c6d2e736ba"
@@ -2578,6 +2581,9 @@
     },
     "report/integrated_gene_report.Rmd": {
       "checksum": "4772282e5a243839ce44c2f518eb4b01"
+    },
+    "resources/cavalli-replot.R": {
+      "checksum": "84501fa0b3dcd65d8943b78453d348ac"
     },
     "resources/provenance/depmap-24Q4-v1.json": {
       "checksum": "8e1fafffea26ebda38204b902a955434"
@@ -2616,7 +2622,7 @@
       "checksum": "0cd6d91fe7741baf990cfe1e5c939889"
     },
     "shiny/interface.R": {
-      "checksum": "03195ee14e7acdd8ddfe5d786cee6bd1"
+      "checksum": "130e49a45a17e78a21b53dd364747678"
     },
     "shiny/provisioning.R": {
       "checksum": "a79a178c54fa2d26ebcd25583bf329cf"

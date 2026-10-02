@@ -32,3 +32,7 @@ task at a time. Inactive sessions disconnect after 15 minutes; the app warns
 before disconnection and provides a reconnect button. Download results before leaving.
 
 The live counter shows connected browser sessions out of five; multiple tabs may use multiple slots. Release preparation stamps the UTC update date and unique build ID into DESCRIPTION automatically. The displayed semantic version also comes from DESCRIPTION.
+
+Cavalli plots offer on-demand patient CSVs and reproduction ZIPs beside each plot. ZIPs include inclusion/exclusion audits, available statistics, source and method metadata, and a standalone R plotting script. Downloads use completed results without refitting analyses. Cerebellum exports are unchanged.
+
+The Pediatric Pan-Cancer panel includes a sourced legend for all 15 Pfister cancer-type abbreviations and the FPKM expression unit. Original dataset labels are preserved.

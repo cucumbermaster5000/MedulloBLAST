@@ -5,7 +5,7 @@ load_r2_core <- function(root = ".", envir = new.env(parent = globalenv())) {
   modules <- c("common", "cache", "palettes", "r2_client", "r2_expression", "subtype_analysis", "pubmed",
     "study", "clinical", "enrichment", "depmap", "ranking", "integration",
     "profile_statistics", "profile_sources", "profile_enrichr", "profile_depmap",
-    "gene_analysis", "browser_report", "profile_report", "clinical_v3", "functional_biology", "tf_targets", "pubmed_discovery", "hpa", "cerebellum", "depmap_explorer", "integrated_report", "report_evidence", "deployment", "provisioning")
+    "gene_analysis", "browser_report", "profile_report", "clinical_v3", "functional_biology", "tf_targets", "pubmed_discovery", "hpa", "cerebellum", "depmap_explorer", "integrated_report", "report_evidence", "cavalli_exports", "deployment", "provisioning")
   for (module in modules) sys.source(file.path(root, "R", paste0(module, ".R")), envir)
   envir$.r2_core_functions <- unique(unlist(lapply(modules, function(module) {
     expressions <- parse(file.path(root, "R", paste0(module, ".R")))
