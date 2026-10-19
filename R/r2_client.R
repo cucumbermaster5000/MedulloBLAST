@@ -137,7 +137,7 @@ function (cfg, track, group_1, group_2, test = "anova", top_n = 1000L,
     parse_r2_diff_html(html_4, group_1, group_2, track)
 }
 r2_request <-
-function (handle, url, fields = NULL) 
+function (handle, url, fields = NULL, fetch = curl::curl_fetch_memory, sleep = Sys.sleep) 
 {
     if (is.null(fields)) {
         curl::handle_setopt(handle, httpget = TRUE)
@@ -146,7 +146,13 @@ function (handle, url, fields = NULL)
         curl::handle_setheaders(handle, `Content-Type` = "application/x-www-form-urlencoded")
         curl::handle_setopt(handle, post = TRUE, postfields = encode_form(fields))
     }
-    response <- curl::curl_fetch_memory(url, handle = handle)
+    for(attempt in seq_len(3L)) {
+        response <- tryCatch(fetch(url, handle = handle), error=identity)
+        transient <- inherits(response,"error") || response$status_code %in% c(429L,500L,502L,503L,504L)
+        if(!transient || attempt==3L)break
+        sleep(attempt)
+    }
+    if(inherits(response,"error"))stop(response)
     if (response$status_code < 200L || response$status_code >= 
         300L) {
         stop("R2 returned HTTP ", response$status_code, call. = FALSE)

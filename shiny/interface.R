@@ -29,7 +29,7 @@ explorer_ui <- function() {
     explorer_style(),explorer_dashboard_style(),explorer_toolbar(),explorer_capacity_notice(),shiny::uiOutput("reference_status"),shiny::uiOutput("status"),
     shiny::div(class="dashboard-nav",bslib::navset_pill_list(id = "section",widths=c(2,10),well=FALSE,
       bslib::nav_panel("Overview", shiny::uiOutput("gene_glance"),shiny::uiOutput("overview"),shiny::uiOutput("report_overview")),
-      bslib::nav_panel("Pediatric Pan-Cancer",shiny::uiOutput("pfister_summary"),
+      bslib::nav_panel("Pediatric Pan-Cancer",shiny::uiOutput("pfister_summary"),shiny::actionButton("pfister_retry","Retry pediatric pan-cancer"),
         shiny::plotOutput("pfister_plot",height=explorer_plot_height("large")),explorer_report_control('pfister_pan_cancer'),explorer_pfister_legend(),
         shiny::h4("Expression summaries"),shiny::tableOutput("pfister_summaries"),
         shiny::h4("Sample types"),shiny::tableOutput("pfister_counts"),
@@ -116,6 +116,9 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
     if(exists("explorer_provisioning_server",mode="function"))explorer_provisioning_server(input,output,session,cfg,core,reference_service)
     result <- shiny::reactiveVal(NULL)
     failure <- shiny::reactiveVal(NULL)
+    requested_gene <- shiny::eventReactive(input$run, {
+      gene<-toupper(trimws(input$gene));shiny::req(length(gene)==1L,!is.na(gene),grepl("^[A-Z][A-Z0-9._-]*$",gene));gene
+    },ignoreInit=TRUE)
     busy <- shiny::reactiveVal(FALSE)
     # One snapshot per download request; filenames and contents share the same result.
     for(export_kind in c('subgroups','subtypes','metastasis','survival')) {
@@ -153,6 +156,8 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
     shiny::observeEvent(input$run, {
       if (busy() && (!isTRUE(cfg$public_app) || identical(main_gene,toupper(trimws(input$gene))))) return()
       if(!is.null(main_job) && main_job$is_alive())main_job$kill()
+      if(!is.null(pfister_job) && pfister_job$is_alive())pfister_job$kill()
+      pfister_job<<-NULL
       busy(TRUE)
       if(!isTRUE(cfg$public_app))on.exit(busy(FALSE), add = TRUE)
       result(NULL); failure(NULL); pfister(NULL)
@@ -212,8 +217,8 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
         main_job$kill();main_job<<-NULL;busy(FALSE);failure("R2 analysis timed out. Please retry later.");return()
       }
       if(main_job$is_alive()){shiny::invalidateLater(500,session);return()}
-      x<-tryCatch(main_job$get_result(),error=function(e){explorer_log_error("R2 analysis failed",e);NULL});main_job<<-NULL;busy(FALSE)
-      if(is.null(x)){failure("R2 data or analysis are currently unavailable. Please retry later.");return()}
+      x<-tryCatch(main_job$get_result(),error=function(e){explorer_log_error("R2 analysis failed",e);failure(explorer_source_error(e,"Cavalli R2"));NULL});main_job<<-NULL;busy(FALSE)
+      if(is.null(x)){if(is.null(failure()))failure("R2 data or analysis are currently unavailable. Please retry later.");return()}
       if(!is.null(x$clinical)) {
         cutoff<-if(identical(input$survival_cutoff,"median"))"median" else "mean"
         x$clinical<-core$recalculate_r2_survival(x$retrieval,x$clinical,cutoff,input$survival_cohorts)
@@ -241,15 +246,13 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
       },ignoreInit=TRUE,ignoreNULL=FALSE)
     })
 
-    # Load once for each completed gene analysis so the integrated report is
-    # complete without requiring the user to visit this tab first.
+    # This independent dataset is requested even when Cavalli has no measurement.
     pfister <- shiny::reactiveVal(NULL)
     pfister_job<-NULL;pfister_started<-NULL;pfister_gene<-NULL;pfister_tick<-shiny::reactiveVal(0L)
     session$onSessionEnded(function(){if(!is.null(pfister_job) && pfister_job$is_alive())pfister_job$kill()})
-    shiny::observeEvent(result()$gene, {
-      shiny::req(result())
-      gene <- result()$gene
-      if(identical(pfister()$gene,gene)) return()
+    shiny::observeEvent(list(requested_gene(),input$pfister_retry), {
+      gene <- requested_gene()
+      if(identical(pfister()$gene,gene)&&!is.null(pfister()$analysis)) return()
       if(isTRUE(cfg$public_app)) {
         if(!is.null(pfister_job) && pfister_job$is_alive() && identical(pfister_gene,gene))return()
         if(!is.null(pfister_job) && pfister_job$is_alive())pfister_job$kill()
@@ -261,7 +264,7 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
         message("[Pfister] ",conditionMessage(e));NULL
       })
       pfister(list(gene=gene,analysis=a))
-    },ignoreInit=TRUE)
+    },ignoreInit=FALSE)
     shiny::observe({
       pfister_tick();if(is.null(pfister_job))return()
       if(explorer_worker_expired(pfister_started,cfg,pfister_job)){
@@ -269,22 +272,22 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
       }
       if(pfister_job$is_alive()){shiny::invalidateLater(500,session);return()}
       a<-tryCatch(pfister_job$get_result(),error=function(e){explorer_log_error("Pfister retrieval failed",e);NULL});pfister_job<<-NULL
-      if(identical(result()$gene,pfister_gene))pfister(list(gene=pfister_gene,analysis=a))
+      if(identical(shiny::isolate(requested_gene()),pfister_gene))pfister(list(gene=pfister_gene,analysis=a))
     })
     output$pfister_summary <- shiny::renderUI({
-      shiny::req(result())
-      if(!identical(pfister()$gene,result()$gene)) return(shiny::p("Loading Pfister expression for the current gene..."))
+      gene<-requested_gene();shiny::req(gene)
+      if(!identical(pfister()$gene,requested_gene())) return(shiny::p("Loading Pfister expression for the current gene..."))
       a <- pfister()$analysis
-      if(is.null(a)) return(shiny::p("Pfister expression could not be retrieved for this gene. MB results remain available. Run the gene again to retry."))
-      shiny::tagList(shiny::h3(paste(result()$gene,"Pfister pan-cancer expression")),shiny::p(a$provenance$dataset_label),
+      if(is.null(a)) return(shiny::p("Pfister expression could not be retrieved for this gene. Other datasets are independent. Use Retry pediatric pan-cancer to retry this dataset."))
+      shiny::tagList(shiny::h3(paste(requested_gene(),"Pfister pan-cancer expression")),shiny::p(a$provenance$dataset_label),
         shiny::p(sprintf("%d samples; %d cancer types. All sample types retained; descriptive comparison only.",nrow(a$data),nrow(a$summaries))),
         shiny::p("Expression is log2(1 + FPKM). Do not directly compare its numerical scale to the Cavalli microarray dataset."))
     })
-    pfister_current <- function() {shiny::req(result(),identical(pfister()$gene,result()$gene),pfister()$analysis);pfister()$analysis}
+    pfister_current <- function() {shiny::req(requested_gene(),identical(pfister()$gene,requested_gene()),pfister()$analysis);pfister()$analysis}
     output$pfister_plot <- shiny::renderPlot({explorer_web_plot(pfister_current()$plot,"pfister_plot",session)},res=120,execOnResize=TRUE)
     output$pfister_summaries <- shiny::renderTable({pfister_current()$summaries},digits=3)
     output$pfister_counts <- shiny::renderTable({pfister_current()$counts})
-    output$pfister_csv <- shiny::downloadHandler(filename=function()paste0(result()$gene,"_Pfister_patient_data.csv"),
+    output$pfister_csv <- shiny::downloadHandler(filename=function()paste0(requested_gene(),"_Pfister_patient_data.csv"),
       content=function(file)data.table::fwrite(pfister_current()$data,file,na="NA"))
 
     if(exists("explorer_report_server",mode="function"))
@@ -292,7 +295,7 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
 
     loading_summary<-shiny::reactive({
       states<-c(R2=if(busy())'loading'else if(!is.null(failure()))'failed'else if(is.null(result()))'idle'else 'complete',
-        `Pediatric pan-cancer`=if(is.null(result())){if(!is.null(failure()))'unavailable'else 'idle'}else if(!identical(pfister()$gene,result()$gene))'loading'else if(is.null(pfister()$analysis))'unavailable'else 'complete')
+        `Pediatric pan-cancer`=if(!identical(pfister()$gene,requested_gene()))'loading'else if(is.null(pfister()$analysis))'unavailable'else 'complete')
       modules<-c(biology='Functional biology',hpa='Protein Atlas',cerebellum='Developing cerebellum',publications='Publications',depmap='DepMap')
       for(k in names(modules)) {
         state_fn<-session$userData[[paste0(k,'_loading_state')]]
@@ -323,7 +326,7 @@ explorer_server <- function(core, cfg, reference_service=NULL) {
       shiny::tagList(
         if(exists("explorer_summary_cards",mode="function"))explorer_summary_cards(x) else
           bslib::layout_columns(bslib::value_box("Queried gene",x$gene),bslib::value_box("Patient samples retrieved",nrow(x$retrieval$data)),bslib::value_box("Samples analyzed",s$n)),
-        shiny::h4("Dataset"), shiny::p(x$retrieval$provenance$dataset_label),
+        shiny::h4("Dataset"), shiny::p(x$retrieval$provenance$dataset_label),shiny::p(x$retrieval$provenance$gene_mapping),
         shiny::p("GSE85217 - R2 log2 expression - WNT, SHH, Group 3 and Group 4"),
         shiny::h4("Broad subgroup result"),
         shiny::p(sprintf("Kruskal-Wallis comparison across %d subgroups: H(%d) = %.3f, raw p = %s. %d samples excluded for missing expression or subgroup annotation.",

@@ -12,7 +12,7 @@ explorer_session_config <- function(cfg,session) {
 explorer_worker_expired <- function(started,cfg,job=NULL) {
   if(!is.null(job)&&is.function(job$started_at)) {
     launched<-job$started_at()
-    if(is.null(launched))return(!is.null(started)&&as.numeric(difftime(Sys.time(),started,units="secs"))>900)
+    if(is.null(launched))return(FALSE)
     started<-launched
   }
   limit<-suppressWarnings(as.numeric(Sys.getenv("MB_WORKER_TIMEOUT_SECONDS","600")))
@@ -41,4 +41,14 @@ start_explorer_worker <- function(cfg,gene,kind="main") {
     lock<-core$deployment_worker_slot(cfg);on.exit(filelock::unlock(lock),add=TRUE)
     if(kind=="pfister")core$analyze_pfister_pan_cancer(core$get_pfister_expression(cfg,gene)) else core$analyze_explorer_request(cfg,gene)
   },args=list(cfg=cfg,gene=gene,kind=kind),libpath=.libPaths(),stdout=logfile,stderr=logfile,supervise=TRUE)
+}
+
+explorer_source_error <- function(error,label="R2") {
+  node<-error
+  for(i in seq_len(8L)) {
+    if(inherits(node,"r2_gene_not_measured"))return(paste(label,"has no verified reporter for this gene in this dataset. This is not a service outage; other datasets are queried independently."))
+    if(inherits(node,"r2_reporter_selection_required"))return(paste(label,"has multiple reporters for this gene; an unambiguous selection is required."))
+    node<-node$parent;if(is.null(node))break
+  }
+  paste(label,"retrieval failed after retrying temporary source errors. Please retry this source; other results remain available.")
 }

@@ -149,7 +149,9 @@ provision_dataset <- function(cfg,id,catalog=provisioning_catalog(cfg),fetch=pro
   })
 }
 
-provision_reference_data <- function(cfg) {
+provision_reference_data <- function(cfg,ids=NULL) {
   catalog<-provisioning_catalog(cfg)
-  setNames(lapply(names(catalog$datasets),function(id)provision_dataset(cfg,id,catalog)),names(catalog$datasets))
+  if(is.null(ids))ids<-names(catalog$datasets)
+  stopifnot(all(ids %in% names(catalog$datasets)))
+  setNames(lapply(ids,function(id)provision_dataset(cfg,id,catalog)),ids)
 }

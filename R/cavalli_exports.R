@@ -41,7 +41,7 @@ cavalli_export_payload <- function(result,kind,cohort='all',app_root='.') {
     app=list(version=release[1,'Version'],release_date=release[1,'Date'],build=release[1,'Build']),
     source=c(list(attribution='Cavalli et al.; GSE85217. Expression and annotations retrieved through R2.',
       accession_url='https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE85217'),
-      provenance[intersect(names(provenance),c('dataset_table','accession','dataset_label','queried_gene','reporter','transformation','retrieved_at','sample_join'))]),
+      provenance[intersect(names(provenance),c('dataset_table','accession','dataset_label','queried_gene','source_gene_symbol','gene_mapping','reporter','transformation','retrieved_at','sample_join'))]),
     clinical=if(kind %in% c('metastasis','survival'))list(verified=a$verification$verified,
       units=a$verification$units,field=a$verification$field,time_field=a$verification$time_field,event_field=a$verification$event_field,
       coding_evidence=a$verification$evidence,cutoff=a$cutoff,

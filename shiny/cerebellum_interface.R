@@ -12,7 +12,7 @@ explorer_cerebellum_ui<-function() {
         c('Broad lineage'='broad_lineage','Cell type'='cell_type','Cell subtype'='subtype','Cell state'='dev_state'),
         selected='broad_lineage',selectize=FALSE),
       shiny::p(class='small text-muted','Expression: exonic UMI counts | Species: Human + Mouse'),
-      shiny::uiOutput('cerebellum_status')),
+      shiny::uiOutput('cerebellum_status'),shiny::actionButton('cerebellum_retry','Retry cerebellum expression')),
     shiny::p(class='small text-muted','Colour shows raw exonic UMI on a log(1 + count) scale, with a separate range for each species. Raw counts are not directly comparable across species. Grey: zero; pale grey: no exonic measurement.'),
     shiny::h4('Human developing cerebellum'),
     shiny::div(class='cerebellum-grid',panel('human','annotation'),panel('human','expression')),
@@ -55,6 +55,10 @@ explorer_cerebellum_server<-function(input,output,session,cfg,core,worker_start=
     if(is.null(gene))return()
     if(reference()$state!='ready'){pending(gene);return()}
     launch(gene)
+  },ignoreInit=TRUE)
+  shiny::observeEvent(input$cerebellum_retry,{
+    gene<-query();shiny::req(gene);if(busy())return();state(NULL)
+    if(reference()$state!='ready'){pending(gene);return()};launch(gene)
   },ignoreInit=TRUE)
   shiny::observe({gene<-pending();if(!is.null(gene)&&reference()$state=='ready'){pending(NULL);launch(gene)}})
   shiny::observe({

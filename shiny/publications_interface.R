@@ -44,7 +44,7 @@ explorer_publications_server <- function(input,output,session,cfg,core,worker_st
       job$kill();job<<-NULL;state(list(status="failed",message="PubMed timed out. Please retry later; other analyses remain available."));return()
     }
     if(job$is_alive()){shiny::invalidateLater(500,session);return()}
-    x<-tryCatch(job$get_result(),error=function(e)NULL);job<<-NULL
+    x<-tryCatch(job$get_result(),error=function(e){if(exists("explorer_log_error",mode="function"))explorer_log_error("PubMed retrieval failed",e);NULL});job<<-NULL
     if(is.null(x))state(list(status="failed",message="PubMed results are currently unavailable. Verify the official gene symbol or try Refresh PubMed later; other analyses remain available.")) else
       state(list(status="complete",data=x))
   })

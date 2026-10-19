@@ -14,6 +14,18 @@ r2_json <- function(text, context) {
     stop("R2 returned an unexpected response for ", context, "; inspect saved source files. ", conditionMessage(e), call. = FALSE))
 }
 
+parse_r2_reporters <- function(text) {
+  # Preserve the distinction between an empty JSON array and null/object errors.
+  if (grepl("^\\s*\\[\\s*\\]\\s*$", text, perl = TRUE)) {
+    return(data.frame(gene_symbol = character(), reporter = character()))
+  }
+  rows <- r2_json(text, "reporters")
+  if (!is.data.frame(rows) || !all(c("gene_symbol", "reporter") %in% names(rows)))
+    stop("Unexpected R2 reporter search schema; inspect saved source files", call. = FALSE)
+  rows
+}
+
+
 r2_script_payload <- function(html, module) {
   doc <- xml2::read_html(charToRaw(html), encoding = "UTF-8")
   scripts <- xml2::xml_text(xml2::xml_find_all(doc, ".//script"))
@@ -137,18 +149,33 @@ get_r2_expression <- function(cfg, gene, reporter = NULL, refresh = FALSE) {
   if (!identical(info$internalIdentifier, cfg$r2_dataset_table)) stop("Dataset identity mismatch", call. = FALSE)
   tracks <- r2_json(capture("tracks.json", list(json_option = "json_dataset_info_tracks", table = cfg$r2_dataset_table)), "tracks")
   annotations <- r2_json(capture("annotations.json", list(json_option = "json_cg_sampleannotation_v1", ctable = cfg$r2_dataset_table, subset = "")), "annotations")
-  reporters <- r2_json(capture("reporters.json", list(json_option = "json_find_reporter_in_dataset_v1", dataset = cfg$r2_dataset_table, search_by = "gene_symbol", query = gene)), "reporters")
+  reporters <- parse_r2_reporters(capture("reporters.json", list(json_option = "json_find_reporter_in_dataset_v1", dataset = cfg$r2_dataset_table, search_by = "gene_symbol", query = gene)))
   if (!is.data.frame(reporters) || !all(c("gene_symbol", "reporter") %in% names(reporters))) stop("Gene absent from R2 reporter search", call. = FALSE)
-  reporters <- reporters[toupper(reporters$gene_symbol) == gene, , drop = FALSE]
+  source_gene <- gene; identity <- NULL
+  exact <- reporters[toupper(reporters$gene_symbol) == gene, , drop = FALSE]
+  if(!nrow(exact) && nrow(reporters)) {
+    identity <- resolve_publication_gene(cfg,gene)
+    allowed <- unique(toupper(c(identity$canonical_symbol,identity$aliases_used)))
+    alias <- reporters[toupper(reporters$gene_symbol) %in% allowed,,drop=FALSE]
+    if(nrow(alias)==1L) {exact<-alias;source_gene<-as.character(alias$gene_symbol[[1]])}
+    else if(nrow(alias)>1L)stop("Multiple verified R2 alias reporters; explicit reporter selection is required")
+  }
+  reporters <- exact
   if (!is.null(reporter)) reporters <- reporters[as.character(reporters$reporter) == reporter, , drop = FALSE]
-  if (nrow(reporters) != 1L) stop("Expected one exact reporter for ", gene, "; found ", nrow(reporters), ". Specify reporter explicitly if ambiguous.", call. = FALSE)
+  if(nrow(reporters)!=1L) {
+    kind<-if(nrow(reporters)==0L)"r2_gene_not_measured" else "r2_reporter_selection_required"
+    stop(structure(list(message=paste("Expected one verified reporter for",gene,"; found",nrow(reporters)),call=NULL),class=c(kind,"error","condition")))
+  }
   reporter <- as.character(reporters$reporter[1])
   html <- capture("expression.html", list(table = cfg$r2_dataset_table, option = "display2", analysis_type = "single_reporter",
     factor = reporter, cortype = transformation, subset = "", grouping_track = cfg$r2_grouping_track %||% 'subgroup', graphtype = "yy_i"), TRUE)
-  expression <- parse_r2_patient_expression(html, gene, reporter, cfg$r2_dataset_table, transformation)
+  expression <- parse_r2_patient_expression(html, source_gene, reporter, cfg$r2_dataset_table, transformation)
+  expression$queried_gene <- gene
   result <- assemble_r2_patient_data(expression, annotations, info, tracks)
   result$provenance <- list(dataset_table = cfg$r2_dataset_table, accession = info$accession, dataset_label = info$datasetTitle,
-    queried_gene = gene, reporter = reporter, transformation = if(transformation=='transform_log2') 'R2 transform_log2 (log2 of source expression)' else 'R2 transform_none (untransformed source expression)',
+    queried_gene = gene, source_gene_symbol = source_gene,
+    gene_mapping = if(source_gene!=gene)paste(gene,"matched source symbol",source_gene,"through NCBI Gene",identity$gene_id,"verified aliases")else NULL,
+    reporter = reporter, transformation = if(transformation=='transform_log2') 'R2 transform_log2 (log2 of source expression)' else 'R2 transform_none (untransformed source expression)',
     sample_join = "Exact equality: expression table samplenames to annotation samplenames; no positional or GEO-expression-ID join",
     cache_hit = FALSE, retrieved_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
     output_dir = out, requests = requests, limitations = "Unofficial read-only R2 interface; validated against observed responses. No clinical/subtype inference. All samples retained.")

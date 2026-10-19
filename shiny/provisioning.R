@@ -1,28 +1,44 @@
 # One lightweight streaming provisioner per app; filesystem locks cover other apps.
-explorer_provisioning_service <- function(cfg,core) {
-  job<-NULL;attempted<-FALSE
+explorer_provisioning_service <- function(cfg,core,start_process=callr::r_bg,now=Sys.time) {
+  job<-NULL;attempts<-0L;retry_at<-NULL
+  ids<-if(isTRUE(cfg$auto_provision))names(core$provisioning_catalog(cfg)$datasets)else character()
+  states<-function()setNames(lapply(ids,function(id)core$provisioning_state(cfg,id)),ids)
   ensure<-function(retry=FALSE) {
-    if(!isTRUE(cfg$auto_provision))return(invisible(NULL))
-    if(!is.null(job)&&job$is_alive())return(invisible(NULL))
-    if(attempted&&!retry)return(invisible(NULL))
-    attempted<<-TRUE
-    for(id in names(core$provisioning_catalog(cfg)$datasets))core$provisioning_set_state(cfg,id,"queued")
-    job<<-callr::r_bg(function(cfg){source(file.path(cfg$app_root,"R/load_core.R"));core<-load_r2_core(cfg$app_root);core$provision_reference_data(cfg)},
-      args=list(cfg=cfg),libpath=.libPaths(),supervise=TRUE)
+    if(!isTRUE(cfg$auto_provision)||!is.null(job))return(invisible(NULL))
+    if(retry){attempts<<-0L;retry_at<<-NULL}
+    if(attempts>=3L)return(invisible(NULL))
+    if(!is.null(retry_at)&&now()<retry_at)return(invisible(NULL))
+    current<-states()
+    selected<-if(attempts==0L&&!retry)ids else names(current)[vapply(current,function(s)s$state!='ready',logical(1))]
+    if(!length(selected))return(invisible(NULL))
+    attempts<<-attempts+1L;retry_at<<-NULL
+    for(id in selected)core$provisioning_set_state(cfg,id,"queued")
+    job<<-tryCatch(start_process(function(cfg,ids){
+      source(file.path(cfg$app_root,"R/load_core.R"));core<-load_r2_core(cfg$app_root)
+      core$provision_reference_data(cfg,ids=ids)
+    },args=list(cfg=cfg,ids=selected),libpath=.libPaths(),supervise=TRUE),error=function(e){
+      for(id in selected)core$provisioning_set_state(cfg,id,"failed",error="Provisioning process could not start")
+      NULL
+    })
     invisible(NULL)
   }
   status<-function() {
     if(!isTRUE(cfg$auto_provision))return(list())
-    ensure()
-    ids<-names(core$provisioning_catalog(cfg)$datasets)
-    states<-setNames(lapply(ids,function(id)core$provisioning_state(cfg,id)),ids)
     if(!is.null(job)&&!job$is_alive()) {
-      tryCatch(job$get_result(),error=function(e){
-        for(id in ids)if(states[[id]]$state %in% c("queued","verifying","downloading"))core$provisioning_set_state(cfg,id,"failed",error="Provisioning process stopped")
+      finished<-job;job<<-NULL
+      tryCatch(finished$get_result(),error=function(e){
+        current<-states()
+        for(id in ids)if(current[[id]]$state %in% c("queued","verifying","downloading"))
+          core$provisioning_set_state(cfg,id,"failed",error="Provisioning process stopped")
       })
-      states<-setNames(lapply(ids,function(id)core$provisioning_state(cfg,id)),ids)
     }
-    states
+    current<-states()
+    failed<-names(current)[vapply(current,function(s)s$state=="failed",logical(1))]
+    if(is.null(job)&&length(failed)&&attempts>0L&&attempts<3L&&is.null(retry_at)) {
+      retry_at<<-now()+c(10,30)[attempts]
+      for(id in failed)core$provisioning_set_state(cfg,id,"retrying",error="Temporary download failure; automatic retry scheduled")
+    }
+    ensure();states()
   }
   list(ensure=ensure,status=status)
 }
@@ -45,7 +61,7 @@ explorer_provisioning_server <- function(input,output,session,cfg,core,service) 
     shiny::div(class=paste("alert",if(failed)"alert-warning"else"alert-info"),role="status",
       shiny::strong(if(failed)"Reference data need a retry."else"Preparing reference datasets..."),
       lapply(pending,function(id)shiny::div(paste(labels[[id]],":",switch(states[[id]]$state,
-        queued="waiting to download",verifying="checking saved files",downloading="downloading and verifying files",failed="download or integrity check failed",states[[id]]$state)))),
+        retrying="temporary download failure; retrying automatically",queued="waiting to download",verifying="checking saved files",downloading="downloading and verifying files",failed="download or integrity check failed",states[[id]]$state)))),
       shiny::p("Other analyses remain available. Dataset preparation is separate from gene analysis."),
       if(failed)shiny::actionButton("reference_retry","Retry dataset downloads"))
   })

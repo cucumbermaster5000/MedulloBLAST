@@ -36,3 +36,7 @@ The live counter shows connected browser sessions out of five; multiple tabs may
 Cavalli plots offer on-demand patient CSVs and reproduction ZIPs beside each plot. ZIPs include inclusion/exclusion audits, available statistics, source and method metadata, and a standalone R plotting script. Downloads use completed results without refitting analyses. Cerebellum exports are unchanged.
 
 The Pediatric Pan-Cancer panel includes a sourced legend for all 15 Pfister cancer-type abbreviations and the FPKM expression unit. Original dataset labels are preserved.
+
+## Retrieval reliability (0.4.7)
+
+Pfister requests run independently of Cavalli results. NCBI identity resolution excludes redirected/discontinued records, and Cavalli reporter matching accepts a unique NCBI-verified alias with the mapping recorded in provenance and exports. Temporary HTTP failures are retried with bounded attempts. Reference downloads retry automatically up to three provisioning attempts and retain checksum validation; completed datasets are not reset when another dataset retries. Cerebellum and Pfister have independent retry controls. Waiting in the shared worker queue does not consume the analysis timeout; the 15-minute session inactivity policy still applies.

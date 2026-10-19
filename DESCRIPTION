@@ -1,7 +1,7 @@
 Package: mbgeneexplorer
 Title: MedulloBLAST
-Version: 0.4.5
-Date: 2026-10-02
+Version: 0.4.7
+Date: 2026-10-19
 Authors@R: person("Dave", "Ng", role = c("aut", "cre"), email =
         "davengis@gmail.com")
 Description: Production dependencies for the MedulloBLAST Shiny
@@ -12,5 +12,5 @@ Depends: R (>= 4.6.0)
 Imports: base64enc, bslib, callr, curl, data.table, digest, filelock,
         ggplot2, ggrepel, htmltools, jsonlite, knitr, later, rmarkdown,
         rvest, shiny, survival, xml2, plotly
-Build: 20261002T203526Z
-Build-Time: 2026-10-02 20:35:26 UTC
+Build: 20261019T175148Z
+Build-Time: 2026-10-19 17:51:48 UTC

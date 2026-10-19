@@ -45,7 +45,13 @@ resolve_publication_gene <- function(cfg,gene,refresh=FALSE) {
   raw_summary<-pubmed_request(cfg,"esummary.fcgi",list(db="gene",id=paste(s$idlist,collapse=","),retmode="json"))
   records<-r2_json(raw_summary,"NCBI Gene summary")$result
   records<-lapply(as.character(s$idlist),function(id)records[[id]])
-  records<-Filter(function(r)!is.null(r$name) && identical(as.character(r$organism$taxid),"9606"),records)
+  records<-Filter(function(r) {
+    redirect<-as.character(r$currentid %||% "")
+    status<-as.character(r$status %||% "")
+    !is.null(r$name) && identical(as.character(r$organism$taxid),"9606") &&
+      (redirect %in% c("","0",as.character(r$uid))) && status %in% c("","0")
+  },records)
+  if(length(records))records<-records[!duplicated(vapply(records,function(r)as.character(r$uid),character(1)))]
   aliases<-function(r)trimws(strsplit(r$otheraliases %||% "",",",fixed=TRUE)[[1]])
   official<-Filter(function(r)!is.null(r$nomenclaturesymbol) && nzchar(r$nomenclaturesymbol) && toupper(r$nomenclaturesymbol)==symbol,records)
   exact<-if(length(official))official else Filter(function(r)toupper(r$name)==symbol,records)
