@@ -1,7 +1,7 @@
 {
-  "version": "0.4.7",
-  "baseline": "db50b6587e05ec52f99cc413520f48a022e7cfeb",
-  "local_tests": "passed: real PCSK9/SC5D/HLX sources, fault injection and existing regression suites",
+  "version": "0.4.8",
+  "baseline": "01ceb94ec4db189a7a1c0aa809dcc46c7798892f",
+  "local_tests": "Age descriptions verified against original human/mouse atlas metadata; UI and bundle checks required before deployment",
   "linux_validation": "Pending hosted post-deployment check",
   "maintainer": "Dave Ng <davengis@gmail.com>",
   "source_scope": "Published app only; unrelated MCP development excluded"
