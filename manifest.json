@@ -2412,7 +2412,7 @@
       "checksum": "060c3a3a2117e910cd03e8a4b0f449db"
     },
     "DESCRIPTION": {
-      "checksum": "f892ce2e7afc32fb6d5e3752c59d0b36"
+      "checksum": "e1d40b938bb0f71a25e5ac3047bdc796"
     },
     "LICENSE": {
       "checksum": "af616b9b57e62cbe5a6dcae98b11b011"
@@ -2493,7 +2493,7 @@
       "checksum": "6d28a48c0f763758f3317327ced89066"
     },
     "R/profile_sources.R": {
-      "checksum": "409b3a11faedf093fe5ca761630329f2"
+      "checksum": "cf6cadd7f6ce63f02fe8bba1f3468ba5"
     },
     "R/profile_statistics.R": {
       "checksum": "c9dfd356de52f6cc093c70a53913decd"
@@ -2550,7 +2550,7 @@
       "checksum": "c8d66cb9f911a3b73f9ab791fe665649"
     },
     "RELEASE_VALIDATION.json": {
-      "checksum": "a93982da9b841bd5568e53662027deb9"
+      "checksum": "f545ec7ded86857deeee74ee4e3668a7"
     },
     "app.R": {
       "checksum": "fddb7c47d1158e1823a635c85fa6d1a0"

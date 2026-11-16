@@ -48,10 +48,19 @@ get_pfister_expression <- function(cfg,gene,reporter=NULL,refresh=FALSE) {
 
 verify_r2_survival_payload <- function(html,js,retrieval) {
   # R2's own renderer decreases the curve by status / nrRemaining; status=1 is an event.
-  if(!grepl('proportion *= (nrRemaining - status) / nrRemaining;',js,fixed=TRUE)) stop('R2 event semantics changed; re-audit kaplan.js')
+  legacy <- grepl('proportion *= (nrRemaining - status) / nrRemaining;',js,fixed=TRUE)
+  current <- grepl('if (d.isEvent) {',js,fixed=TRUE) &&
+    grepl('proportion *= (nrRemaining - 1) / nrRemaining;',js,fixed=TRUE) &&
+    grepl("['event', d.isEvent ? 'yes' : 'no']",js,fixed=TRUE)
+  if(!legacy && !current) stop('R2 event semantics changed; re-audit kaplan.js')
   p <- r2_script_payload(html,'/d3/plots/kaplan.js')$plotData
   if(!grepl('month',p$xLabel,ignore.case=TRUE)||!grepl('overall survival',p$yLabel,ignore.case=TRUE)) stop('Survival endpoint/time unit not confirmed')
-  d <- p$data;require_columns(d,c('id','status','xValue'))
+  d <- p$data
+  if(current && all(c('id','isEvent','time') %in% names(d))) {
+    if(!is.logical(d$isEvent) || anyNA(d$isEvent)) stop('R2 event flags are not explicit booleans')
+    d$status <- as.integer(d$isEvent); d$xValue <- d$time
+  }
+  require_columns(d,c('id','status','xValue'))
   base <- retrieval$data
   # R2 Kaplan IDs lowercase GEO accessions; case normalisation only, never positional joining.
   keys <- toupper(d$id);reference <- toupper(base$sample_id)
@@ -76,7 +85,7 @@ get_cavalli_survival <- function(cfg,retrieval,refresh=FALSE) {
   if(!is.null(cached))return(cached)
   h<-r2_session(120);landing<-r2_request(h,cfg$r2_base_url)
   if(grepl('Use R2 without an account',landing,fixed=TRUE))r2_request(h,cfg$r2_base_url,list(method='guest',open_page='auth'))
-  html<-r2_request(h,cfg$r2_base_url,list(table=cfg$r2_dataset_table,option='kaplanscan',inputprobeset=retrieval$provenance$reporter,scanmodus='median',survival='overall',mingrpsize='8',subset=''))
+  html<-r2_request(h,cfg$r2_base_url,list(table=cfg$r2_dataset_table,option='kaplanscan',switch='1',inputprobeset=retrieval$provenance$reporter,num_var_type='reporter',scanmodus='median',survival='overall',mingrpsize='8',mtc='bonferroni',subset=''))
   doc<-xml2::read_html(charToRaw(html),encoding='UTF-8');scripts<-xml2::xml_text(xml2::xml_find_all(doc,'.//script'))
   line<-scripts[grepl('/d3/plots/kaplan.js',scripts,fixed=TRUE)]
   if(length(line)!=1)stop('R2 Kaplan source module unavailable')

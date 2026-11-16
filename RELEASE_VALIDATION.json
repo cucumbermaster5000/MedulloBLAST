@@ -1,6 +1,6 @@
 {
-  "version": "0.4.9",
-  "baseline": "7934b24593f596bd2c060dda5e30ccce12e439f8",
+  "version": "0.4.10",
+  "baseline": "12255e2bba9e4c6c6110df0f8ba577202855b0d2",
   "local_tests": "R2 inline and referenced JSON parser fixtures; real source and browser validation performed separately",
   "linux_validation": "Pending hosted post-deployment check",
   "maintainer": "Dave Ng <davengis@gmail.com>",
