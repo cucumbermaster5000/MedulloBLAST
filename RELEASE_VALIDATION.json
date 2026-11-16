@@ -1,7 +1,7 @@
 {
-  "version": "0.4.8",
-  "baseline": "01ceb94ec4db189a7a1c0aa809dcc46c7798892f",
-  "local_tests": "Age descriptions verified against original human/mouse atlas metadata; UI and bundle checks required before deployment",
+  "version": "0.4.9",
+  "baseline": "7934b24593f596bd2c060dda5e30ccce12e439f8",
+  "local_tests": "R2 inline and referenced JSON parser fixtures; real source and browser validation performed separately",
   "linux_validation": "Pending hosted post-deployment check",
   "maintainer": "Dave Ng <davengis@gmail.com>",
   "source_scope": "Published app only; unrelated MCP development excluded"

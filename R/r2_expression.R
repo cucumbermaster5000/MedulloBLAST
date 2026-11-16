@@ -36,7 +36,19 @@ r2_script_payload <- function(html, module) {
   if (start < 0) stop("R2 script wrapper changed: ", module, call. = FALSE)
   payload <- trimws(substring(candidates, start + nchar(marker)))
   if (!endsWith(payload, "));")) stop("Unexpected R2 script suffix", call. = FALSE)
-  r2_json(substr(payload, 1, nchar(payload) - 3L), module)
+  argument <- substr(payload, 1, nchar(payload) - 3L)
+  # R2 may pass a reference to a separate application/json script element.
+  # Accept only this exact inert form; never execute JavaScript from the source.
+  match <- regexec("^JSON[.]parse\\(document[.]getElementById\\(['\"]([A-Za-z0-9_-]+)['\"]\\)[.]textContent\\)$", argument, perl = TRUE)
+  reference <- regmatches(argument, match)[[1L]]
+  if (length(reference)) {
+    nodes <- xml2::xml_find_all(doc, ".//script[@id]")
+    nodes <- nodes[xml2::xml_attr(nodes, "id") == reference[[2L]]]
+    if (length(nodes) != 1L || !identical(xml2::xml_attr(nodes, "type"), "application/json"))
+      stop("R2 JSON settings element is missing, duplicated, or has an unexpected type", call. = FALSE)
+    argument <- xml2::xml_text(nodes)
+  }
+  r2_json(argument, module)
 }
 
 parse_r2_patient_expression <- function(html, gene, reporter, dataset, transformation = "transform_log2") {
